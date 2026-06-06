@@ -350,6 +350,78 @@ def remove_project_item(pid: int, iid: int, db: Session = Depends(get_db)):
     db.delete(pi); db.commit()
 
 
+
+# ── Assets CRUD ───────────────────────────────────────────────────────────────
+@app.get("/api/assets", response_model=List[AssetOut], tags=["assets"])
+def list_assets(q: str = None, limit: int = 1000, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import joinedload as jl
+    query = db.query(Asset).options(
+        jl(Asset.location),
+        jl(Asset.checkouts)
+    )
+    if q:
+        query = query.filter(Asset.name.ilike(f"%{q}%"))
+    assets = query.order_by(Asset.name).limit(limit).all()
+    for a in assets:
+        active = next((c for c in a.checkouts if c.returned_at is None), None)
+        a.current_checkout = active
+    return assets
+
+@app.get("/api/assets/{aid}", response_model=AssetOut, tags=["assets"])
+def get_asset(aid: int, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import joinedload as jl
+    a = db.query(Asset).options(jl(Asset.location), jl(Asset.checkouts)).filter(Asset.id == aid).first()
+    if not a: raise HTTPException(404, "Asset not found")
+    a.current_checkout = next((c for c in a.checkouts if c.returned_at is None), None)
+    return a
+
+@app.post("/api/assets", response_model=AssetOut, status_code=201, tags=["assets"])
+def create_asset(data: AssetCreate, db: Session = Depends(get_db)):
+    a = Asset(**data.model_dump())
+    db.add(a); db.commit(); db.refresh(a)
+    a.checkouts = []; a.current_checkout = None
+    return a
+
+@app.patch("/api/assets/{aid}", response_model=AssetOut, tags=["assets"])
+def update_asset(aid: int, data: AssetUpdate, db: Session = Depends(get_db)):
+    a = db.get(Asset, aid)
+    if not a: raise HTTPException(404, "Asset not found")
+    for k, v in data.model_dump(exclude_unset=True).items():
+        setattr(a, k, v)
+    db.commit()
+    return get_asset(aid, db)
+
+@app.delete("/api/assets/{aid}", status_code=204, tags=["assets"])
+def delete_asset(aid: int, db: Session = Depends(get_db)):
+    a = db.get(Asset, aid)
+    if not a: raise HTTPException(404, "Asset not found")
+    db.delete(a); db.commit()
+
+@app.post("/api/assets/{aid}/checkout", response_model=AssetOut, tags=["assets"])
+def checkout_asset(aid: int, data: AssetCheckoutCreate, db: Session = Depends(get_db)):
+    a = db.get(Asset, aid)
+    if not a: raise HTTPException(404, "Asset not found")
+    if a.status == "checked_out": raise HTTPException(400, "Asset is already checked out")
+    co = AssetCheckout(asset_id=aid, **data.model_dump())
+    a.status = "checked_out"
+    db.add(co); db.commit()
+    return get_asset(aid, db)
+
+@app.post("/api/assets/{aid}/return", response_model=AssetOut, tags=["assets"])
+def return_asset(aid: int, db: Session = Depends(get_db)):
+    from datetime import datetime, timezone
+    a = db.get(Asset, aid)
+    if not a: raise HTTPException(404, "Asset not found")
+    active = db.query(AssetCheckout).filter(
+        AssetCheckout.asset_id == aid,
+        AssetCheckout.returned_at == None
+    ).first()
+    if active:
+        active.returned_at = datetime.now(timezone.utc)
+    a.status = "available"
+    db.commit()
+    return get_asset(aid, db)
+
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 @app.get("/api/dashboard", response_model=DashboardStats, tags=["dashboard"])
 def dashboard_stats(db: Session = Depends(get_db)):
