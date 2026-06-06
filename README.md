@@ -1,6 +1,7 @@
 # Makerspace ERP
 
 A self-hosted inventory and asset management system for home makerspaces. Single-file frontend, FastAPI + SQLite backend, runs as a systemd service.
+This was vibe coded in 3 days with Claude. There may be bugs, things may be formed weird. Please submit bugs and feature requests.
 
 **Current version: v1.3.83**
 
