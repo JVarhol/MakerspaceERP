@@ -5,7 +5,7 @@ This was vibe coded in 3 days with Claude. There may be bugs, things may be form
 
 Come Hangout and Chat https://discord.gg/rYryj42bSH
 
-**Current version: v1.3.90**
+**Current version: ALPHA v1.3.90**
 
 ---
 
