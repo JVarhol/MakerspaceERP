@@ -44,7 +44,7 @@
 </main>
 </div> <nav class="mobile-nav"> <div class="mobile-nav-item active" id="mnav-dashboard"  onclick="navigate('dashboard')"><span>📊</span>Home</div> <div class="mobile-nav-item"        id="mnav-items"      onclick="navigate('items')"><span>🔩</span>Items</div> <div class="mobile-nav-item"        id="mnav-scan"       onclick="navigate('scan')"><span>📷</span>Scan</div> <div class="mobile-nav-item"        id="mnav-more"       onclick="navigate('more')"><span>⋯</span>More</div>
 </nav> <div id="modal-root"></div> <script>
-const APP_VERSION = '1.3.83';
+const APP_VERSION = '1.3.90';
 const APP_BUILD   = '2026-06-02';
 const THEME_KEY = 'erp-theme';
 function applyTheme(t) {
@@ -345,8 +345,9 @@ function updateLowStockBadge() {
   }).catch(()=>{});
 }
 
-function navigate(page) {
+function navigate(page, _fromHistory = false) {
   if (scannerInst) { scannerInst.stop().catch(()=>{}); scannerInst = null; }
+  if (!_fromHistory) history.pushState({page}, '', '#' + page);
 
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const sid = document.getElementById('nav-' + page);
@@ -384,6 +385,12 @@ function navigate(page) {
   };
   (map[page] || renderDashboard)();
 }
+
+// ── Browser back/forward support ──────────────────────────────────────────────
+window.addEventListener('popstate', e => {
+  const page = e.state && e.state.page ? e.state.page : 'dashboard';
+  navigate(page, true);
+});
 
 function setMain(html) { document.getElementById('main').innerHTML = html; }
 function loading() { setMain('<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div class="spinner"></div></div>'); }
@@ -1218,9 +1225,9 @@ async function renderReports(tab='inventory') {
     allHistory.sort((a,b)=>new Date(b.checked_out_at)-new Date(a.checked_out_at));
 
     setMain(`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div><div class="page-title">📄 Reports</div><div class="page-sub">Track who has what equipment, flag overdue checkouts, and review the full checkout history. Switch to Inventory for stock reports.</div></div>
-        <button class="btn btn-primary" onclick="printAssetReport()">🖨️ Print</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div><div class="page-title">📄 Reports</div><div class="page-sub">Track equipment, flag overdue checkouts, and review full checkout history.</div></div>
+        <button class="btn btn-secondary" onclick="printAssetReport()">🖨️ Print Report</button>
       </div>
       ${tabBtns}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px">
@@ -1263,9 +1270,9 @@ async function renderReports(tab='inventory') {
   items.forEach(i=>{ const c=i.category?.name||'Uncategorized'; (cats[c]=cats[c]||[]).push(i); });
   const totalValue = items.filter(i=>i.price).reduce((s,i)=>s+i.price*i.quantity,0);
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="page-title">📄 Reports</div><div class="page-sub">A snapshot of your full inventory organized by category with quantities, values, and stock status. Switch to Assets for equipment tracking.</div></div>
-      <button class="btn btn-primary" onclick="printInventorySnapshot()">🖨️ Print Snapshot</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div><div class="page-title">📄 Reports</div><div class="page-sub">Inventory snapshot by category with quantities, values, and stock status.</div></div>
+      <button class="btn btn-secondary" onclick="printInventorySnapshot()">🖨️ Print Report</button>
     </div>
     ${tabBtns}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
@@ -1292,6 +1299,68 @@ async function printInventorySnapshot() {
     <div class="cat">${cat}</div> <table><thead><tr><th>Item</th><th>Color/Material</th><th>Qty</th><th>Unit Price</th><th>Total Value</th><th>Status</th></tr></thead> <tbody>${citems.map(i=>`<tr> <td>${i.name}</td> <td>${[i.color,i.material].filter(Boolean).join(' / ')||'—'}</td> <td><strong>${i.quantity}</strong> ${i.unit_name}</td> <td>${i.price?_cur()+i.price.toFixed(2):'—'}</td> <td>${i.price?_cur()+(i.price*i.quantity).toFixed(2):'—'}</td> <td class="${i.quantity<=0?'out':i.low_stock?'low':'ok'}">${i.quantity<=0?'Out':i.low_stock?'Low':'OK'}</td> </tr>`).join('')}</tbody></table>`).join('')}
   <script>window.onload=()=>window.print();<\/script></body></html>`;
   const w = window.open('','_blank','width=900,height=700');
+  w.document.write(html); w.document.close();
+}
+
+async function printAssetReport() {
+  const assets = await get('/api/assets');
+  const now = new Date();
+  const checkedOut  = assets.filter(a => a.status === 'checked_out');
+  const available   = assets.filter(a => a.status === 'available');
+  const maintenance = assets.filter(a => a.status === 'maintenance');
+  const retired     = assets.filter(a => a.status === 'retired');
+  const overdue     = checkedOut.filter(a => { const co = a.current_checkout; return co && co.expected_return && new Date(co.expected_return) < now; });
+  const totalValue  = assets.reduce((s, a) => s + (a.purchase_price || 0), 0);
+  const allHistory  = [];
+  assets.forEach(a => { a.checkouts.forEach(c => { allHistory.push({asset_name:a.name,asset_tag:a.asset_tag,...c}); }); });
+  allHistory.sort((a, b) => new Date(b.checked_out_at) - new Date(a.checked_out_at));
+  const sCol = {available:'#22c55e',checked_out:'#f59e0b',maintenance:'#a78bfa',retired:'#94a3b8'};
+  const sLbl = {available:'Available',checked_out:'Checked Out',maintenance:'Maintenance',retired:'Retired'};
+
+  const overdueRows = overdue.map(a => {
+    const co = a.current_checkout;
+    const days = Math.floor((now - new Date(co.expected_return)) / 864e5);
+    return `<tr><td>${esc(a.name)}</td><td style="font-family:monospace">${esc(a.asset_tag||'—')}</td><td>${esc(co.checked_out_by)}</td><td style="color:#dc2626">${co.expected_return}</td><td style="font-weight:700;color:#dc2626">${days}d</td></tr>`;
+  }).join('');
+  const overdueSection = overdue.length ? `<div class="overdue-box"><strong style="color:#dc2626">⚠️ Overdue (${overdue.length})</strong><table style="margin-top:6px"><thead><tr><th>Asset</th><th>Tag</th><th>Checked Out By</th><th>Expected Return</th><th>Days Overdue</th></tr></thead><tbody>${overdueRows}</tbody></table></div>` : '';
+
+  const coRows = checkedOut.map(a => {
+    const co = a.current_checkout;
+    const od = co && co.expected_return && new Date(co.expected_return) < now;
+    return `<tr><td style="font-weight:500">${esc(a.name)}</td><td style="font-family:monospace">${esc(a.asset_tag||'—')}</td><td>${esc(a.category||'—')}</td><td>${esc(co?co.checked_out_by:'—')}</td><td>${co?new Date(co.checked_out_at).toLocaleDateString():'—'}</td><td style="color:${od?'#dc2626':'inherit'};font-weight:${od?600:400}">${co?co.expected_return||'—':'—'}${od?' ⚠️':''}</td></tr>`;
+  }).join('');
+  const coSection = checkedOut.length ? `<h2>Currently Checked Out (${checkedOut.length})</h2><table><thead><tr><th>Asset</th><th>Tag</th><th>Category</th><th>By</th><th>Since</th><th>Expected Return</th></tr></thead><tbody>${coRows}</tbody></table>` : '';
+
+  const assetRows = assets.map(a => {
+    const col = sCol[a.status] || '#818cf8';
+    return `<tr><td style="font-weight:500">${esc(a.name)}</td><td style="font-family:monospace;font-size:10px">${esc(a.asset_tag||'—')}</td><td>${esc(a.category||'—')}</td><td><span class="badge" style="background:${col}22;color:${col}">${sLbl[a.status]||a.status}</span></td><td>${esc(a.location?a.location.name:'—')}</td><td style="font-family:monospace;font-size:10px">${esc(a.serial_number||'—')}</td><td>${a.purchase_price?'$'+a.purchase_price.toFixed(2):'—'}</td></tr>`;
+  }).join('');
+
+  const histRows = allHistory.slice(0, 200).map(c => `<tr><td>${esc(c.asset_name)}</td><td style="font-family:monospace">${esc(c.asset_tag||'—')}</td><td>${esc(c.checked_out_by)}</td><td>${new Date(c.checked_out_at).toLocaleDateString()}</td><td>${c.returned_at?new Date(c.returned_at).toLocaleDateString():'<em style="color:#f59e0b">Active</em>'}</td><td style="color:#666">${esc(c.notes||'—')}</td></tr>`).join('');
+  const histSection = allHistory.length ? `<h2>Checkout History</h2><table><thead><tr><th>Asset</th><th>Tag</th><th>By</th><th>Checked Out</th><th>Returned</th><th>Notes</th></tr></thead><tbody>${histRows}</tbody></table>` : '';
+
+  const valueRow = totalValue > 0 ? `<div class="stat"><div class="stat-val">$${totalValue.toFixed(2)}</div><div class="stat-lbl">Total Value</div></div>` : '';
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Asset Report</title>
+  <style>@page{margin:20mm}body{font-family:Arial,sans-serif;font-size:12px;color:#111}h1{font-size:18px;margin-bottom:4px}h2{font-size:13px;color:#6366f1;border-bottom:2px solid #6366f1;padding-bottom:3px;margin:16px 0 8px}.sub{color:#666;font-size:11px;margin-bottom:16px}.summary{display:flex;gap:16px;margin-bottom:16px;padding:10px;background:#f8fafc;border-radius:8px;flex-wrap:wrap}.stat{text-align:center;min-width:70px}.stat-val{font-size:18px;font-weight:700}.stat-lbl{font-size:10px;color:#666}table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#f1f5f9;text-align:left;padding:5px 8px;font-size:11px;border-bottom:2px solid #e2e8f0}td{padding:4px 8px;border-bottom:1px solid #f1f5f9;font-size:11px}.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600}.overdue-box{background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;margin-bottom:12px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+  </head><body>
+  <h1>🖥️ Asset Report</h1>
+  <div class="sub">Generated ${now.toLocaleString()} · ${assets.length} assets</div>
+  <div class="summary">
+    <div class="stat"><div class="stat-val">${assets.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat"><div class="stat-val" style="color:#22c55e">${available.length}</div><div class="stat-lbl">Available</div></div>
+    <div class="stat"><div class="stat-val" style="color:#f59e0b">${checkedOut.length}</div><div class="stat-lbl">Checked Out</div></div>
+    <div class="stat"><div class="stat-val" style="color:#ef4444">${overdue.length}</div><div class="stat-lbl">Overdue</div></div>
+    <div class="stat"><div class="stat-val" style="color:#a78bfa">${maintenance.length}</div><div class="stat-lbl">Maintenance</div></div>
+    <div class="stat"><div class="stat-val" style="color:#94a3b8">${retired.length}</div><div class="stat-lbl">Retired</div></div>
+    ${valueRow}
+  </div>
+  ${overdueSection}${coSection}
+  <h2>All Assets (${assets.length})</h2>
+  <table><thead><tr><th>Name</th><th>Tag</th><th>Category</th><th>Status</th><th>Location</th><th>Serial</th><th>Value</th></tr></thead><tbody>${assetRows}</tbody></table>
+  ${histSection}
+  </body></html>`;
+  const w = window.open('', '_blank', 'width=900,height=700');
   w.document.write(html); w.document.close();
 }
 
@@ -2449,6 +2518,207 @@ async function bulkDelete() {
   let done=0; for (const id of selectedItems) { await del('/api/items/'+id).catch(()=>{}); done++; }
   toast('Deleted '+done+' item(s)'); clearBulkSelection();
 }
+// ── Bulk Add Items ───────────────────────────────────────────────────────────
+let _bulkRows = [];
+let _bulkCats = [];
+let _bulkLocs = [];
+
+async function openBulkAddItems() {
+  const [cats, locs] = await Promise.all([get('/api/categories'), get('/api/locations')]);
+  _bulkCats = cats;
+  _bulkLocs = locs;
+  _bulkRows = [{}, {}, {}, {}]; // 4 starter rows
+
+  const _lb = Object.fromEntries(locs.map(l=>[l.id,l]));
+  function _lp(l){const p=[];let c=l;while(c){p.unshift(c.name);c=c.parent_id?_lb[c.parent_id]:null;}return p.join(' › ');}
+  const locOpts = locs.map(l=>`<option value="${l.id}">${esc(_lp(l))}</option>`).join('');
+  const catOpts = cats.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
+
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">📦 Bulk Add Items</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Add multiple items at once. Location applies to all rows unless overridden per row.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;padding:12px;background:var(--bg-hover);border-radius:8px">
+      <div>
+        <label class="field-label">Default Location (all rows)</label>
+        <select id="bulk-add-loc" class="input">
+          <option value="">— none —</option>${locOpts}
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Default Category (all rows)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="bulk-add-cat" class="input" style="flex:1">
+            <option value="">— none —</option>${catOpts}
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="_bulkToggleNewCat()" title="Create new category">＋ New</button>
+        </div>
+        <div id="bulk-new-cat-wrap" style="display:none;margin-top:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px">Quick-create category</div>
+          <div style="display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center">
+            <input id="bulk-new-cat-icon" class="input" style="font-size:15px;padding:5px 8px;width:54px;text-align:center" value="📦"/>
+            <input id="bulk-new-cat-name" class="input" style="font-size:13px;padding:5px 8px" placeholder="Category name…" onkeydown="if(event.key==='Enter')_bulkCreateCat()"/>
+            <button class="btn btn-primary btn-sm" onclick="_bulkCreateCat()">Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--bg-hover)">
+            <th style="padding:6px 8px;text-align:left;min-width:160px">Name *</th>
+            <th style="padding:6px 8px;text-align:left;min-width:130px">Category</th>
+            <th style="padding:6px 8px;text-align:left;min-width:60px">Unit</th>
+            <th style="padding:6px 8px;text-align:left;min-width:70px">Qty</th>
+            <th style="padding:6px 8px;text-align:left;min-width:70px">Min Qty</th>
+            <th style="padding:6px 8px;text-align:left;min-width:80px">Price</th>
+            <th style="padding:6px 8px;width:28px"></th>
+          </tr>
+        </thead>
+        <tbody id="bulk-add-body">
+          ${_bulkRows.map((_,i)=>_bulkRowHtml(i, catOpts)).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <button class="btn btn-secondary btn-sm" onclick="_addBulkRow()">＋ Add Row</button>
+      <span style="font-size:11px;color:var(--text-3)">Tab through cells · blank rows are skipped</span>
+      <div style="flex:1"></div>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBulkAdd()">Add All Items</button>
+    </div>
+  `, 'lg');
+}
+
+function _bulkRowHtml(i, catOpts) {
+  const cats = _bulkCats;
+  const co = catOpts || cats.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
+  return `<tr id="bulk-row-${i}" style="border-bottom:1px solid var(--border)">
+    <td style="padding:4px 4px"><input class="input" style="padding:4px 6px;font-size:13px" placeholder="Item name" id="br-name-${i}" onkeydown="_bulkTab(event,${i})"/></td>
+    <td style="padding:4px 4px"><select class="input" style="padding:4px 6px;font-size:13px" id="br-cat-${i}">
+      <option value="">— inherit —</option>${co}
+    </select></td>
+    <td style="padding:4px 4px"><input class="input" style="padding:4px 6px;font-size:13px;width:58px" placeholder="pcs" id="br-unit-${i}"/></td>
+    <td style="padding:4px 4px"><input class="input" type="number" min="0" step="any" style="padding:4px 6px;font-size:13px;width:65px" value="0" id="br-qty-${i}"/></td>
+    <td style="padding:4px 4px"><input class="input" type="number" min="0" step="any" style="padding:4px 6px;font-size:13px;width:65px" value="0" id="br-min-${i}"/></td>
+    <td style="padding:4px 4px"><input class="input" type="number" min="0" step="0.01" style="padding:4px 6px;font-size:13px;width:75px" placeholder="0.00" id="br-price-${i}"/></td>
+    <td style="padding:4px 4px"><button class="btn btn-secondary btn-sm" style="padding:3px 7px" onclick="_removeBulkRow(${i})">×</button></td>
+  </tr>`;
+}
+
+function _bulkTab(e, rowIdx) {
+  // On Enter in the last column of a row, add a new row and focus name
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    _addBulkRow();
+    setTimeout(()=>document.getElementById('br-name-'+(_bulkRows.length-1))?.focus(), 50);
+  }
+}
+
+function _addBulkRow() {
+  const i = _bulkRows.length;
+  _bulkRows.push({});
+  const tbody = document.getElementById('bulk-add-body');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.id = 'bulk-row-'+i;
+  tr.style.borderBottom = '1px solid var(--border)';
+  const cats = _bulkCats;
+  const co = cats.map(c=>`<option value="${c.id}">${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+  tr.innerHTML = _bulkRowHtml(i, co).replace(/^<tr[^>]*>/, '').replace(/<\/tr>$/, '');
+  tbody.appendChild(tr);
+  setTimeout(()=>document.getElementById('br-name-'+i)?.focus(), 50);
+}
+
+function _removeBulkRow(i) {
+  const row = document.getElementById('bulk-row-'+i);
+  if (row) row.remove();
+}
+
+async function submitBulkAdd() {
+  const defLocId = document.getElementById('bulk-add-loc')?.value || '';
+  const defCatId = document.getElementById('bulk-add-cat')?.value || '';
+
+  // Collect all visible rows
+  const tbody = document.getElementById('bulk-add-body');
+  if (!tbody) return;
+  const rows = Array.from(tbody.querySelectorAll('tr[id^="bulk-row-"]'));
+
+  const toCreate = rows.map(tr => {
+    const i = tr.id.replace('bulk-row-','');
+    const name = document.getElementById('br-name-'+i)?.value.trim();
+    if (!name) return null;
+    return {
+      name,
+      category_id: parseInt(document.getElementById('br-cat-'+i)?.value) || parseInt(defCatId) || null,
+      unit_name:   document.getElementById('br-unit-'+i)?.value.trim() || 'pcs',
+      unit_type:   'quantity',
+      quantity:    parseFloat(document.getElementById('br-qty-'+i)?.value) || 0,
+      min_quantity:parseFloat(document.getElementById('br-min-'+i)?.value) || 0,
+      price:       parseFloat(document.getElementById('br-price-'+i)?.value) || null,
+      locId:       defLocId,
+    };
+  }).filter(Boolean);
+
+  if (!toCreate.length) { toast('Enter at least one item name', 'error'); return; }
+
+  let created = 0, failed = 0;
+  for (const r of toCreate) {
+    try {
+      const { locId, ...body } = r;
+      const item = await post('/api/items', body);
+      if (locId) {
+        await api(`/api/items/${item.id}/locations/${locId}?qty=${body.quantity}`, {method:'POST'}).catch(()=>{});
+      }
+      created++;
+    } catch(e) { failed++; }
+  }
+
+  closeModal();
+  toast(`Added ${created} item${created!==1?'s':''}${failed?` (${failed} failed)`:''}`, failed?'error':'success');
+  if (currentPage === 'items') renderItems();
+}
+
+function _bulkToggleNewCat() {
+  const wrap = document.getElementById('bulk-new-cat-wrap');
+  if (!wrap) return;
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
+  if (!visible) setTimeout(() => document.getElementById('bulk-new-cat-name')?.focus(), 50);
+}
+
+async function _bulkCreateCat() {
+  const name = document.getElementById('bulk-new-cat-name')?.value.trim();
+  if (!name) { toast('Category name required', 'error'); return; }
+  const icon = document.getElementById('bulk-new-cat-icon')?.value.trim() || '📦';
+  try {
+    const cat = await post('/api/categories', { name, icon });
+    _bulkCats.push(cat);
+    // Rebuild option lists
+    const co = _bulkCats.map(c => `<option value="${c.id}">${esc(c.icon||'')} ${esc(c.name)}</option>`).join('');
+    // Update default dropdown and auto-select new cat
+    const defSel = document.getElementById('bulk-add-cat');
+    if (defSel) {
+      defSel.innerHTML = '<option value="">— none —</option>' + co;
+      defSel.value = String(cat.id);
+    }
+    // Update all per-row dropdowns
+    document.querySelectorAll('[id^="br-cat-"]').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">— inherit —</option>' + co;
+      sel.value = cur; // restore selection
+    });
+    // Hide form and clear input
+    document.getElementById('bulk-new-cat-wrap').style.display = 'none';
+    document.getElementById('bulk-new-cat-name').value = '';
+    toast(`Category "${name}" created`, 'success');
+  } catch(e) { toast(e.message || 'Failed to create category', 'error'); }
+}
+
+
 async function renderItems() {
   loading();
   const _itemsLimit = parseInt(localStorage.getItem('erp-items-limit'))||200;
@@ -2488,7 +2758,7 @@ async function renderItems() {
   items.forEach(item => { tableRows += itemRow(item); });
 
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"> <div><div class="page-title">Items <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${items.length})</span></div><div class="page-sub">Your full parts and materials inventory. Search, filter by category, and manage quantities from one place.</div></div> <div style="display:flex;flex-wrap:wrap;gap:6px"> <button class="btn btn-secondary btn-sm" onclick="exportItemsCSV()" title="Export CSV">⬇ CSV</button> <label class="btn btn-secondary btn-sm" style="cursor:pointer" title="Import CSV">⬆ CSV<input type="file" accept=".csv" style="display:none" onchange="importItemsCSV(this)"/></label> <button class="btn btn-secondary btn-sm" onclick="openItemColsModal()" title="Configure columns">⚙ Cols</button> <button class="btn btn-primary btn-sm" onclick="openAddItem()">＋ Add Item</button> </div> </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"> <div><div class="page-title">Items <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${items.length})</span></div><div class="page-sub">Your full parts and materials inventory. Search, filter by category, and manage quantities from one place.</div></div> <div style="display:flex;flex-wrap:wrap;gap:6px"> <button class="btn btn-secondary btn-sm" onclick="exportItemsCSV()" title="Export CSV">⬇ CSV</button> <label class="btn btn-secondary btn-sm" style="cursor:pointer" title="Import CSV">⬆ CSV<input type="file" accept=".csv" style="display:none" onchange="importItemsCSV(this)"/></label> <button class="btn btn-secondary btn-sm" onclick="openItemColsModal()" title="Configure columns">⚙ Cols</button> <button class="btn btn-secondary btn-sm" onclick="openBulkAddItems()">📋 Bulk Add</button> <button class="btn btn-primary btn-sm" onclick="openAddItem()">＋ Add Item</button> </div> </div>
     <div id="bulk-action-bar" style="display:none;background:var(--bg-card);border:2px solid var(--accent);border-radius:10px;padding:10px 14px;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       <strong id="bulk-count" style="color:var(--accent);font-size:13px;min-width:80px">0 selected</strong>
       <button class="btn btn-secondary btn-sm" onclick="bulkChangeCategory()">🏷 Category</button>
@@ -2537,7 +2807,7 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
   const catOpts = cats.map(c=>`<option value="${c.id}" ${v.category_id==c.id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
   const _locById = Object.fromEntries(locs.map(l=>[l.id,l]));
   function _locPath(l){const parts=[];let cur=l;while(cur){parts.unshift(cur.name);cur=cur.parent_id?_locById[cur.parent_id]:null;}return parts.join(' › ');}
-  const locOpts = locs.map(l=>`<option value="${l.id}">${_locPath(l)}</option>`).join('');
+  const locOpts = locs.map(l=>`<option value="${l.id}" ${v.location_id==l.id?'selected':''}>${_locPath(l)}</option>`).join('');
   const matOpts = materials.map(m=>`<option value="${esc(m.name)}">`).join('');
   const hasPkg = !!v.package_size;
   let _sealedCount = 0, _looseQty = 0;
@@ -2563,9 +2833,20 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
       </div>
       <div>
         <label class="field-label">Category</label>
-        <select id="f-category" class="input" onchange="applyDefaultUnit(this,cats_);loadCustomFields(this.value,null)">
-          <option value="">&#8212; none &#8212;</option>${catOpts}
-        </select>
+        <div style="display:flex;gap:4px;align-items:flex-start">
+          <select id="f-category" class="input" style="flex:1" onchange="applyDefaultUnit(this,cats_);loadCustomFields(this.value,null)">
+            <option value="">&#8212; none &#8212;</option>${catOpts}
+          </select>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="toggleInlineNew('cat')" title="Add category">＋</button>
+        </div>
+        <div id="inline-new-cat" style="display:none;background:var(--bg-hover);border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:4px">
+          <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:6px">New Category</div>
+          <input id="inline-cat-name" class="input" placeholder="Name" style="margin-bottom:6px" onkeydown="if(event.key==='Enter')submitInlineCategory()"/>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-primary btn-sm" onclick="submitInlineCategory()">Add</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleInlineNew('cat')">Cancel</button>
+          </div>
+        </div>
       </div>
       <div>
         <label class="field-label">Unit type / name</label>
@@ -2609,9 +2890,23 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
         </div>
         <div>
           <label class="field-label">Location</label>
-          <select id="f-location" class="input">
-            <option value="">&#8212; none &#8212;</option>${locOpts}
-          </select>
+          <div style="display:flex;gap:4px;align-items:flex-start">
+            <select id="f-location" class="input" style="flex:1">
+              <option value="">&#8212; none &#8212;</option>${locOpts}
+            </select>
+            <button class="btn btn-secondary btn-sm" type="button" onclick="toggleInlineNew('loc')" title="Add location">＋</button>
+          </div>
+          <div id="inline-new-loc" style="display:none;background:var(--bg-hover);border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:4px">
+            <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:6px">New Location</div>
+            <input id="inline-loc-name" class="input" placeholder="Name" style="margin-bottom:6px" onkeydown="if(event.key==='Enter')submitInlineLocation()"/>
+            <select id="inline-loc-type" class="input" style="margin-bottom:6px">
+              <option value="bin">Bin</option><option value="shelf">Shelf</option><option value="drawer">Drawer</option><option value="desk">Desk</option><option value="shed">Shed</option><option value="other">Other</option>
+            </select>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-primary btn-sm" onclick="submitInlineLocation()">Add</button>
+              <button class="btn btn-secondary btn-sm" onclick="toggleInlineNew('loc')">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2914,6 +3209,51 @@ async function lookupBarcode(barcode) {
   } catch {}
 }
 
+function toggleInlineNew(type) {
+  const el = document.getElementById('inline-new-' + type);
+  if (!el) return;
+  const showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : 'block';
+  if (!showing) { const inp = el.querySelector('input'); if (inp) setTimeout(() => inp.focus(), 40); }
+}
+
+async function submitInlineCategory() {
+  const name = (document.getElementById('inline-cat-name').value || '').trim();
+  if (!name) return;
+  const cat = await post('/api/categories', {name, icon: '📦', color: '#6366f1'});
+  if (!cat || cat.detail) { toast('Error: ' + (cat?.detail || 'failed'), true); return; }
+  const cats = await get('/api/categories');
+  cats_ = cats;
+  const sel = document.getElementById('f-category');
+  if (sel) {
+    sel.innerHTML = '<option value="">&#8212; none &#8212;</option>' +
+      cats.map(c => `<option value="${c.id}" ${c.id === cat.id ? 'selected' : ''}>${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+    loadCustomFields(cat.id, null);
+  }
+  toggleInlineNew('cat');
+  document.getElementById('inline-cat-name').value = '';
+  toast('Category "' + esc(cat.name) + '" added!');
+}
+
+async function submitInlineLocation() {
+  const name = (document.getElementById('inline-loc-name').value || '').trim();
+  if (!name) return;
+  const locType = document.getElementById('inline-loc-type')?.value || 'bin';
+  const loc = await post('/api/locations', {name, location_type: locType});
+  if (!loc || loc.detail) { toast('Error: ' + (loc?.detail || 'failed'), true); return; }
+  const locs = await get('/api/locations');
+  const sel = document.getElementById('f-location');
+  if (sel) {
+    const _locById = Object.fromEntries(locs.map(l => [l.id, l]));
+    const _locPath = l => { const p=[]; let c=l; while(c){p.unshift(c.name);c=c.parent_id?_locById[c.parent_id]:null;} return p.join(' › '); };
+    sel.innerHTML = '<option value="">&#8212; none &#8212;</option>' +
+      locs.map(l => `<option value="${l.id}" ${l.id === loc.id ? 'selected' : ''}>${esc(_locPath(l))}</option>`).join('');
+  }
+  toggleInlineNew('loc');
+  document.getElementById('inline-loc-name').value = '';
+  toast('Location "' + esc(loc.name) + '" added!');
+}
+
 async function submitAddItem() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { toast('Name is required','error'); return; }
@@ -2944,22 +3284,28 @@ async function submitAddItem() {
     is_assembly:   document.getElementById('f-is-assembly')?.checked||false,
     supplier_links: supUrl ? [{ url:supUrl, price:supPrice }] : [],
   };
+  // Resolve actual quantity from form inputs before posting
+  const _isPkg = !!body.package_size;
+  let _pkgSealedCount = 0;
+  if (_isPkg) {
+    _pkgSealedCount = parseInt(document.getElementById('f-pkg-sealed').value) || 0;
+    const _pkgLoose  = parseFloat(document.getElementById('f-pkg-loose').value)  || 0;
+    body.quantity = +(_pkgSealedCount * body.package_size + _pkgLoose).toFixed(4);
+  } else {
+    body.quantity = parseFloat(document.getElementById('f-qty').value) || 0;
+  }
   try {
     const item = await post('/api/items', body);
     if (locId) await api(`/api/items/${item.id}/locations/${locId}?qty=${body.quantity}`, {method:'POST'});
     if (_pendingPhotoFile) await uploadPhotoForItem(item.id).catch(()=>{});
     await saveCustomFieldValues(item.id).catch(()=>{});
-    if (body.package_size && body.quantity > 0) {
-      const ps = body.package_size;
+    if (_isPkg && body.package_size && body.quantity > 0) {
       const isSpool = body.package_behavior === 'spool';
-      const numPkgs = body.quantity;
-      const fullCount = Math.floor(numPkgs);
-      const fracRem = numPkgs % 1;
+      const looseQty = parseFloat(document.getElementById('f-pkg-loose').value) || 0;
       const pkgs = [];
-      for (let i=0; i<fullCount; i++) pkgs.push({sealed:true});
-      if (isSpool && fracRem > 0.001) pkgs.push({sealed:false, remaining:+(fracRem*ps).toFixed(4)});
-      const actualQty = fullCount * ps + (fracRem > 0.001 ? +(fracRem*ps).toFixed(4) : 0);
-      await patch('/api/items/'+item.id, {quantity: actualQty, packages_json: JSON.stringify(pkgs)});
+      for (let i = 0; i < _pkgSealedCount; i++) pkgs.push({sealed: true});
+      if (isSpool && looseQty > 0.001) pkgs.push({sealed: false, remaining: +looseQty.toFixed(4)});
+      await patch('/api/items/' + item.id, {quantity: body.quantity, packages_json: JSON.stringify(pkgs)});
     }
     closeModal();
     toast('Item added!');
@@ -3149,7 +3495,7 @@ async function duplicateItem(id) {
   const item = await get('/api/items/'+id);
   closeModal();
   await openAddItem({
-    name:         'Copy of ' + item.name,
+    name:         item.name,
     description:  item.description,
     category_id:  item.category_id,
     unit_type:    item.unit_type,
@@ -3163,6 +3509,7 @@ async function duplicateItem(id) {
     manufacturer: item.manufacturer,
     price:        item.price,
     notes:        item.notes,
+    location_id:  item.locations && item.locations.length ? item.locations[0].location_id : null,
     // SKU and barcode intentionally left blank — must be unique
   });
 }
@@ -3945,25 +4292,64 @@ async function renderCategories(){
   const cats=await get('/api/categories');
   setMain(`
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div class="page-title">Categories <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${cats.length})</span></div><div class="page-sub">Group your items by type for faster browsing and filtering. Click any category card to jump straight to its items.</div><button class="btn btn-primary" onclick="openAddCat()">＋ Add Category</button></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-      ${!cats.length?'<p style="color:var(--text-3)">No categories yet.</p>':''}
-      ${cats.map(c=>`<div class="card" style="padding:16px;position:relative">
-        <div style="font-size:28px;margin-bottom:6px;cursor:pointer" onclick="browseCategory(${c.id},'${esc(c.name)}')">${c.icon}</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:2px;cursor:pointer" onclick="browseCategory(${c.id},'${esc(c.name)}')" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-1)'">${esc(c.name)}</div>
-        ${c.default_unit_name?`<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Unit: ${esc(c.default_unit_name)}</div>`:'<div style="margin-bottom:6px"></div>'}
-        <div style="height:3px;border-radius:2px;background:${c.color};margin-bottom:12px"></div>
-        <div style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" style="flex:1" onclick="openEditCat(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteCat(${c.id})">×</button></div>
-      </div>`).join('')}
+    <div id="cats-grid">
+      ${(()=>{
+        if (!cats.length) return '<p style="color:var(--text-3)">No categories yet.</p>';
+        const catMap = Object.fromEntries(cats.map(c=>[c.id,c]));
+        const roots = cats.filter(c=>!c.parent_id);
+        const children = cats.filter(c=>c.parent_id);
+        const renderCard = (c, indent=false) => `<div class="card" style="padding:16px;position:relative${indent?';margin-left:0;border-left:3px solid '+c.color:''}" >
+          ${indent?`<div style="font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">↳ ${esc((catMap[c.parent_id]||{}).name||'')}</div>`:''}
+          <div style="font-size:28px;margin-bottom:6px;cursor:pointer" onclick="browseCategory(${c.id},'${esc(c.name)}')">${c.icon}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:2px;cursor:pointer" onclick="browseCategory(${c.id},'${esc(c.name)}')" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-1)'">${esc(c.name)}</div>
+          ${c.default_unit_name?`<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Unit: ${esc(c.default_unit_name)}</div>`:'<div style="margin-bottom:6px"></div>'}
+          <div style="height:3px;border-radius:2px;background:${c.color};margin-bottom:12px"></div>
+          <div style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" style="flex:1" onclick="openEditCat(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteCat(${c.id})">×</button></div>
+        </div>`;
+        const rootCards = roots.map(r=>renderCard(r,false)).join('');
+        const childCards = children.map(c=>renderCard(c,true)).join('');
+        const sep = children.length && roots.length ? `<div style="grid-column:1/-1;border-top:1px solid var(--border);margin:4px 0;padding-top:4px"><span style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px">Sub-categories</span></div>` : '';
+        return rootCards + sep + childCards;
+      })()}
     </div>
+    <style>#cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}</style>
   `);
 }
-function catForm(v={}){return `<div style="display:grid;gap:12px"><div><label class="field-label">Name *</label><input id="cf-name" class="input" value="${esc(v.name||'')}" placeholder="Fasteners"/></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><label class="field-label">Emoji icon</label><input id="cf-icon" class="input" value="${v.icon||'📦'}"/></div><div><label class="field-label">Color</label><input id="cf-color" type="color" class="input" style="height:42px;cursor:pointer" value="${v.color||'#6366f1'}"/></div></div><div><label class="field-label">Default Unit</label><input id="cf-unit" class="input" value="${esc(v.default_unit_name||'')}" placeholder="pcs, g, ml…"/></div><div><label class="field-label">Default Package Behavior</label><select id="cf-pkg-behavior" class="input"><option value="">— not set —</option><option value="bulk" ${v.default_package_behavior==='bulk'?'selected':''}>Bulk (fungible, e.g. screws)</option><option value="spool" ${v.default_package_behavior==='spool'?'selected':''}>Spool (continuous, e.g. filament)</option></select></div></div>`;}
-function openAddCat(){showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Add Category</div>${catForm()}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitAddCat()">Add</button></div>`);}
+function catForm(v={}, cats=[]) {
+  const parentOpts = cats
+    .filter(c => c.id !== v.id)
+    .map(c => `<option value="${c.id}" ${v.parent_id==c.id?'selected':''}>${esc(c.icon||'')} ${esc(c.name)}</option>`)
+    .join('');
+  return `<div style="display:grid;gap:12px">
+    <div><label class="field-label">Name *</label><input id="cf-name" class="input" value="${esc(v.name||'')}" placeholder="Fasteners"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label class="field-label">Emoji icon</label><input id="cf-icon" class="input" value="${v.icon||'📦'}"/></div>
+      <div><label class="field-label">Color</label><input id="cf-color" type="color" class="input" style="height:42px;cursor:pointer" value="${v.color||'#6366f1'}"/></div>
+    </div>
+    <div><label class="field-label">Parent Category <span style="color:var(--text-3);font-size:11px">(optional)</span></label>
+      <select id="cf-parent" class="input">
+        <option value="">— none (top-level) —</option>${parentOpts}
+      </select>
+    </div>
+    <div><label class="field-label">Default Unit</label><input id="cf-unit" class="input" value="${esc(v.default_unit_name||'')}" placeholder="pcs, g, ml…"/></div>
+    <div><label class="field-label">Default Package Behavior</label>
+      <select id="cf-pkg-behavior" class="input">
+        <option value="">— not set —</option>
+        <option value="bulk" ${v.default_package_behavior==='bulk'?'selected':''}>Bulk (fungible, e.g. screws)</option>
+        <option value="spool" ${v.default_package_behavior==='spool'?'selected':''}>Spool (continuous, e.g. filament)</option>
+      </select>
+    </div>
+  </div>`;
+}
+async function openAddCat() {
+  const cats = await get('/api/categories');
+  showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Add Category</div>${catForm({}, cats)}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitAddCat()">Add</button></div>`);
+}
 async function openEditCat(id){
-  const c=await get('/api/categories/'+id);
+  const [c, cats]=await Promise.all([get('/api/categories/'+id), get('/api/categories')]);
   showModal(`
     <div style="font-size:18px;font-weight:700;margin-bottom:16px">Edit Category</div>
-    ${catForm(c)}
+    ${catForm(c, cats)}
     <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px">
       <div style="font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:4px">🔧 Custom Fields</div>
       <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">These fields appear when adding or editing items in this category.</div>
@@ -3999,8 +4385,8 @@ async function openEditCat(id){
   `,'lg');
   await renderFieldManagerList(id);
 }
-async function submitAddCat(){const n=document.getElementById('cf-name').value.trim();if(!n){toast('Name required','error');return;}try{await post('/api/categories',{name:n,icon:document.getElementById('cf-icon').value||'📦',color:document.getElementById('cf-color').value,default_unit_name:document.getElementById('cf-unit').value.trim()||null,default_package_behavior:document.getElementById('cf-pkg-behavior').value||null});closeModal();toast('Category added!');renderCategories();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
-async function submitEditCat(id){try{await patch('/api/categories/'+id,{name:document.getElementById('cf-name').value.trim(),icon:document.getElementById('cf-icon').value||'📦',color:document.getElementById('cf-color').value,default_unit_name:document.getElementById('cf-unit').value.trim()||null,default_package_behavior:document.getElementById('cf-pkg-behavior').value||null});closeModal();toast('Saved!');renderCategories();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
+async function submitAddCat(){const n=document.getElementById('cf-name').value.trim();if(!n){toast('Name required','error');return;}try{await post('/api/categories',{name:n,icon:document.getElementById('cf-icon').value||'📦',color:document.getElementById('cf-color').value,parent_id:parseInt(document.getElementById('cf-parent').value)||null,default_unit_name:document.getElementById('cf-unit').value.trim()||null,default_package_behavior:document.getElementById('cf-pkg-behavior').value||null});closeModal();toast('Category added!');renderCategories();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
+async function submitEditCat(id){try{await patch('/api/categories/'+id,{name:document.getElementById('cf-name').value.trim(),icon:document.getElementById('cf-icon').value||'📦',color:document.getElementById('cf-color').value,parent_id:parseInt(document.getElementById('cf-parent').value)||null,default_unit_name:document.getElementById('cf-unit').value.trim()||null,default_package_behavior:document.getElementById('cf-pkg-behavior').value||null});closeModal();toast('Saved!');renderCategories();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
 async function deleteCat(id){if(!confirm('Delete category? Items become uncategorized.'))return;try{await del('/api/categories/'+id);toast('Deleted.');renderCategories();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
 function browseCategory(id,name){iFilters.category_id=String(id);navigate('items');}
 
@@ -4996,11 +5382,14 @@ async function submitChangePassword(forced=false) {
     await post('/api/auth/change-password',{current_password:current,new_password:newPw});
     if (_currentUser) { _currentUser.force_pw_change=false; localStorage.setItem('erp_user',JSON.stringify(_currentUser)); }
     toast('Password changed!'); closeModal();
-    if (forced) navigate('dashboard');
+    if (forced) history.replaceState({page: hashPage}, '', '#' + hashPage);
+  navigate(hashPage, true);
   } catch(e) { toast(e.message||String(e)||'Unexpected error','error'); }
 }
 async function bootApp() {
   updateSidebarHotkeys();
+  // Restore page from URL hash on load/refresh, replace so there's no blank entry
+  const hashPage = location.hash.replace('#', '') || 'dashboard';
   if (_currentUser) {
     const el=document.getElementById('conn-status');
     if(el) el.innerHTML=`<span style="color:var(--text-2);font-size:11px;cursor:pointer" onclick="openChangePassword()" title="Change password">&#128100; ${esc(_currentUser.full_name||_currentUser.username)}</span> <button class="btn btn-secondary btn-sm" style="padding:2px 6px;font-size:10px;margin-left:4px" onclick="logout()">Logout</button>`;
