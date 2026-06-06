@@ -37,7 +37,7 @@ For Proxmox VM setup, see [SERVER_SETUP.md](SERVER_SETUP.md).
 Run as root on a fresh Debian/Ubuntu machine:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/makerspace-erp.git
+git clone https://github.com/JVarhol/MakerspaceERP.git
 cd makerspace-erp
 sudo bash setup.sh
 ```
@@ -196,85 +196,6 @@ A custom component scaffold is in `ha_integration/`. This is a work-in-progress 
 
 ---
 
-## File Structure
-
-```
-makerspace-erp/
-├── backend/                  # FastAPI application
-│   ├── main.py               # App entry point, serves frontend
-│   ├── models.py             # SQLAlchemy ORM models
-│   ├── schemas.py            # Pydantic schemas
-│   ├── auth.py               # JWT + bcrypt auth helpers
-│   ├── database.py           # SQLAlchemy engine / session
-│   ├── mqtt_service.py       # MQTT client
-│   ├── ha_service.py         # HA REST push service
-│   ├── requirements.txt
-│   └── routers/              # API route modules
-│       ├── items.py
-│       ├── locations.py
-│       ├── categories.py
-│       ├── transactions.py
-│       ├── kits.py
-│       ├── barcode.py
-│       ├── category_fields.py
-│       ├── settings.py
-│       ├── auth_router.py
-│       └── users_router.py
-├── frontend/
-│   └── index.html            # Single-file SPA (~340 KB)
-├── migrations/               # SQL upgrade scripts for existing installs
-├── ha_integration/           # Home Assistant custom component (WIP)
-├── makerspace-erp.service    # systemd unit file
-├── setup.sh                  # Automated installer
-└── SERVER_SETUP.md           # Proxmox VM setup guide
-```
-
----
-
-## Backup
-
-The entire application state is in one file:
-
-```bash
-cp /opt/makerspace-erp/data/makerspace.db ~/makerspace-backup-$(date +%Y%m%d).db
-```
-
-To also back up uploaded photos:
-
-```bash
-tar -czf ~/makerspace-backup-$(date +%Y%m%d).tar.gz \
-  /opt/makerspace-erp/data/makerspace.db \
-  /opt/makerspace-erp/data/uploads/
-```
-
----
-
-## Troubleshooting
-
-**Service won't start**
-```bash
-sudo journalctl -u makerspace-erp -n 50
-```
-
-**Port 8080 already in use**
-Edit `/etc/systemd/system/makerspace-erp.service`, change `--port 8080` to another port, then `sudo systemctl daemon-reload && sudo systemctl restart makerspace-erp`.
-
-**Forgot admin password**
-```bash
-sqlite3 /opt/makerspace-erp/data/makerspace.db \
-  "UPDATE users SET password_hash='\$2b\$12\$placeholder' WHERE username='admin';"
-```
-Then use the Settings → My Account page to reset properly, or recreate the user from the Users admin page.
-
-**Reset to factory defaults**
-```bash
-sudo systemctl stop makerspace-erp
-rm /opt/makerspace-erp/data/makerspace.db
-sudo systemctl start makerspace-erp
-```
-The database is recreated on next startup with the default admin account.
-
----
 
 ## License
 
