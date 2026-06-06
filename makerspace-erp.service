@@ -1,0 +1,18 @@
+[Unit]
+Description=Makerspace ERP - Inventory Management System
+After=network.target
+
+[Service]
+Type=simple
+User=makerspace
+Group=makerspace
+WorkingDirectory=/opt/makerspace-erp
+Environment="DATABASE_URL=sqlite:////opt/makerspace-erp/data/makerspace.db"
+ExecStart=/opt/makerspace-erp/venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8080
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
