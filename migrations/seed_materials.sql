@@ -1,0 +1,17 @@
+INSERT OR IGNORE INTO materials (name, color) VALUES ('PLA',          '#3b82f6');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('ABS',          '#f97316');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('PETG',         '#8b5cf6');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('TPU',          '#06b6d4');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('ASA',          '#10b981');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Nylon',        '#f59e0b');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Resin',        '#ec4899');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Carbon Fiber', '#374151');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Steel',        '#6b7280');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Stainless',    '#94a3b8');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Aluminum',     '#a3a3a3');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Brass',        '#ca8a04');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Copper',       '#b45309');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Titanium',     '#64748b');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Wood',         '#92400e');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('Acrylic',      '#67e8f9');
+INSERT OR IGNORE INTO materials (name, color) VALUES ('PCB',          '#166534');

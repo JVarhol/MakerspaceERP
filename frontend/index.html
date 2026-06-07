@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Makerspace ERP</title>
+<link id="favicon-link" rel="icon" type="image/x-icon" href="">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>:root{--bg-base:#0f172a;--bg-card:#1e293b;--bg-hover:#2d3f55;--bg-input:#0f172a;--border:#334155;--text-1:#e2e8f0;--text-2:#94a3b8;--text-3:#64748b;--accent:#6366f1;--accent-h:#4f46e5;--danger:#ef4444;--danger-h:#dc2626;--success:#22c55e;--warn:#f59e0b;--sidebar-w:220px}[data-theme="light"]{--bg-base:#f1f5f9;--bg-card:#ffffff;--bg-hover:#f8fafc;--bg-input:#f8fafc;--border:#e2e8f0;--text-1:#0f172a;--text-2:#475569;--text-3:#94a3b8}*,*::before,*::after{box-sizing:border-box}body{background:var(--bg-base);color:var(--text-1);font-family:'Inter',system-ui,sans-serif;margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden}.app-shell{display:flex;flex:1;overflow:hidden}.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transition:transform .25s ease}.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}.sidebar-logo .title{font-size:15px;font-weight:700;color:var(--accent)}.sidebar-logo .sub{font-size:11px;color:var(--text-3);margin-top:2px}.nav-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:12px 16px 4px}.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;margin:1px 6px;cursor:pointer;font-size:13.5px;color:var(--text-2);transition:all .12s}.nav-item:hover,.nav-item.active{background:var(--bg-hover);color:var(--text-1)}.nav-item.active{color:var(--accent)}.nav-icon{font-size:16px;width:20px;text-align:center}.sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}.theme-btn{background:var(--bg-hover);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px;transition:all .12s}.theme-btn:hover{color:var(--text-1);border-color:var(--accent)}main{flex:1;overflow-y:auto;padding:24px;padding-bottom:80px}@media (min-width:768px){main{padding-bottom:24px}}.page-title{font-size:22px;font-weight:700;color:var(--text-1)}.page-sub{font-size:13px;color:var(--text-2);margin-top:3px}.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:40;background:var(--bg-card);border-top:1px solid var(--border);padding:4px 0 env(safe-area-inset-bottom,4px);grid-template-columns:repeat(5,1fr)}.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;cursor:pointer;font-size:11px;color:var(--text-3);transition:color .1s;-webkit-tap-highlight-color:transparent}.mobile-nav-item.active{color:var(--accent)}.mobile-nav-item span{font-size:20px;line-height:1}@media (max-width:767px){.sidebar{display:none}.mobile-nav{display:grid}}.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px}.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .12s;white-space:nowrap}.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-h)}.btn-secondary{background:var(--bg-hover);color:var(--text-1);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--accent)}.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:var(--danger-h)}.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}.btn-icon{padding:7px;border-radius:8px}.input{background:var(--bg-input);border:1px solid var(--border);color:var(--text-1);border-radius:8px;padding:9px 12px;font-size:14px;width:100%;outline:none;transition:border-color .12s}.input:focus{border-color:var(--accent)}textarea.input{resize:vertical;min-height:64px}select.input option{background:var(--bg-card)}label.field-label{font-size:12px;color:var(--text-2);display:block;margin-bottom:4px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13.5px}.compact-table td,.compact-table th{padding:3px 8px!important;font-size:12px!important}th{padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);border-bottom:1px solid var(--border);white-space:nowrap}td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg-hover)}.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:600}.badge-red{background:#fecaca;color:#991b1b}.badge-green{background:#bbf7d0;color:#166534}.badge-blue{background:#bfdbfe;color:#1e40af}.badge-yellow{background:#fef9c3;color:#854d0e}.badge-purple{background:#e9d5ff;color:#6b21a8}[data-theme="light"] .badge-red{background:#fee2e2}[data-theme="light"] .badge-green{background:#dcfce7}[data-theme="light"] .badge-blue{background:#dbeafe}[data-theme="light"] .badge-yellow{background:#fef9c3}.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(2px)}.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;max-height:92dvh;overflow-y:auto;padding:24px;width:100%;max-width:580px}.modal-lg{max-width:680px}.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}.spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.low-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--danger);flex-shrink:0}.dup-warning{background:#451a03;border:1px solid #f59e0b;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:13px;color:#fcd34d}[data-theme="light"] .dup-warning{background:#fefce8;color:#92400e;border-color:#f59e0b}.photo-preview{width:100%;max-width:200px;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--border)}.move-step{display:none}.move-step.active{display:block}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}.main-fullpage{padding:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;}
@@ -39,12 +40,12 @@
   </div>
 </div>
 <div class="app-shell" id="app-shell" style="display:none">
-<aside class="sidebar"> <div class="sidebar-logo"> <div class="title">⚙️ Makerspace ERP</div> <div class="sub">Inventory Manager</div> </div> <nav style="padding:8px 0; flex:1;"> <div class="nav-section">Overview</div> <div class="nav-item active" id="nav-dashboard"   onclick="navigate('dashboard')"><span class="nav-icon">📊</span>Dashboard</div> <div class="nav-section">Inventory</div> <div class="nav-item" id="nav-items"         onclick="navigate('items')"><span class="nav-icon">🔩</span>Items<span id="items-count-badge" style="display:none;background:var(--accent);color:#fff;border-radius:10px;font-size:10px;font-weight:700;min-width:18px;height:18px;line-height:18px;text-align:center;margin-left:auto;padding:0 5px"></span></div> <div class="nav-item" id="nav-scan"          onclick="navigate('scan')"><span class="nav-icon">📷</span>Scan Barcode</div> <div class="nav-item" id="nav-low-stock"     onclick="navigate('low-stock')" style="display:flex;align-items:center"><span class="nav-icon">⚠️</span>Low / Out of Stock<span id="low-stock-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;font-size:10px;font-weight:700;min-width:18px;height:18px;line-height:18px;text-align:center;margin-left:auto;padding:0 5px"></span></div> <div class="nav-item" id="nav-stock-take"   onclick="navigate('stock-take')"><span class="nav-icon">📦</span>Stock Take</div> <div class="nav-item" id="nav-kits" onclick="navigate('kits')"><span class="nav-icon">🧰</span>Kits</div> <div class="nav-section">Organization</div><div class="nav-item" id="nav-locations"     onclick="navigate('locations')"><span class="nav-icon">📍</span>Locations</div> <div class="nav-item" id="nav-categories"    onclick="navigate('categories')"><span class="nav-icon">🏷️</span>Categories</div> <div class="nav-item" id="nav-materials"     onclick="navigate('materials')"><span class="nav-icon">⚗️</span>Materials</div> <div class="nav-section">History</div> <div class="nav-item" id="nav-assets"          onclick="navigate('assets')"><span class="nav-icon">🖥️</span>Assets</div> <div class="nav-item" id="nav-purchase-orders" onclick="navigate('purchase-orders')"><span class="nav-icon">🛒</span>Purchase Orders</div> <div class="nav-item" id="nav-transactions"  onclick="navigate('transactions')"><span class="nav-icon">📋</span>Transactions</div> <div class="nav-item" id="nav-trends"        onclick="navigate('trends')"><span class="nav-icon">📈</span>Usage Trends</div> <div class="nav-item" id="nav-projects"      onclick="navigate('projects')"><span class="nav-icon">🗂</span>Projects</div> <div class="nav-item" id="nav-shelf-map"     onclick="navigate('shelf-map')"><span class="nav-icon">🗺</span>Shelf Map</div> <div class="nav-item" id="nav-reports"       onclick="navigate('reports')"><span class="nav-icon">📄</span>Reports</div> <div class="nav-item" id="nav-settings"      onclick="navigate('settings')"><span class="nav-icon">⚙️</span>Settings</div> <div class="nav-item" id="nav-users" onclick="navigate('users')" style="display:none"><span class="nav-icon">👥</span>Users</div> </nav> <div class="sidebar-footer"> <div id="conn-status" style="font-size:11px;color:var(--text-3)">Connecting…</div> <button class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button> </div>
+<aside class="sidebar"> <div class="sidebar-logo" id="sidebar-logo-area"> <div id="sidebar-logo-default"><div class="title">⚙️ Makerspace ERP</div><div class="sub">Inventory Manager</div></div><img id="sidebar-logo-img" src="" alt="Logo" style="display:none;max-height:48px;max-width:180px;object-fit:contain"/> </div> <nav style="padding:8px 0; flex:1;"> <div class="nav-section">Overview</div> <div class="nav-item active" id="nav-dashboard"   onclick="navigate('dashboard')"><span class="nav-icon">📊</span>Dashboard</div> <div class="nav-section">Inventory</div> <div class="nav-item" id="nav-items"         onclick="navigate('items')"><span class="nav-icon">🔩</span>Items<span id="items-count-badge" style="display:none;background:var(--accent);color:#fff;border-radius:10px;font-size:10px;font-weight:700;min-width:18px;height:18px;line-height:18px;text-align:center;margin-left:auto;padding:0 5px"></span></div> <div class="nav-item" id="nav-scan"          onclick="navigate('scan')"><span class="nav-icon">📷</span>Scan Barcode</div> <div class="nav-item" id="nav-low-stock"     onclick="navigate('low-stock')" style="display:flex;align-items:center"><span class="nav-icon">⚠️</span>Low / Out of Stock<span id="low-stock-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;font-size:10px;font-weight:700;min-width:18px;height:18px;line-height:18px;text-align:center;margin-left:auto;padding:0 5px"></span></div> <div class="nav-item" id="nav-stock-take"   onclick="navigate('stock-take')"><span class="nav-icon">📦</span>Stock Take</div> <div class="nav-item" id="nav-kits" onclick="navigate('kits')"><span class="nav-icon">🧰</span>Kits</div> <div class="nav-section">Organization</div><div class="nav-item" id="nav-locations"     onclick="navigate('locations')"><span class="nav-icon">📍</span>Locations</div> <div class="nav-item" id="nav-categories"    onclick="navigate('categories')"><span class="nav-icon">🏷️</span>Categories</div> <div class="nav-item" id="nav-materials"     onclick="navigate('materials')"><span class="nav-icon">⚗️</span>Materials</div> <div class="nav-section">History</div> <div class="nav-item" id="nav-assets"          onclick="navigate('assets')"><span class="nav-icon">🖥️</span>Assets</div> <div class="nav-item" id="nav-purchase-orders" onclick="navigate('purchase-orders')"><span class="nav-icon">🛒</span>Purchase Orders</div> <div class="nav-item" id="nav-transactions"  onclick="navigate('transactions')"><span class="nav-icon">📋</span>Transactions</div> <div class="nav-item" id="nav-trends"        onclick="navigate('trends')"><span class="nav-icon">📈</span>Usage Trends</div> <div class="nav-item" id="nav-projects"      onclick="navigate('projects')"><span class="nav-icon">🗂</span>Projects</div> <div class="nav-item" id="nav-shelf-map"     onclick="navigate('shelf-map')"><span class="nav-icon">🗺</span>Shelf Map</div> <div class="nav-item" id="nav-reports"       onclick="navigate('reports')"><span class="nav-icon">📄</span>Reports</div> <div class="nav-item" id="nav-settings"      onclick="navigate('settings')"><span class="nav-icon">⚙️</span>Settings</div> <div class="nav-item" id="nav-users" onclick="navigate('users')" style="display:none"><span class="nav-icon">👥</span>Users</div> </nav> <div class="sidebar-footer"> <div id="conn-status" style="font-size:11px;color:var(--text-3)">Connecting…</div> <button class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button> </div>
 </aside> <main id="main"> <div style="display:flex;align-items:center;justify-content:center;height:100%"> <div class="spinner"></div> </div>
 </main>
 </div> <nav class="mobile-nav"> <div class="mobile-nav-item active" id="mnav-dashboard"  onclick="navigate('dashboard')"><span>📊</span>Home</div> <div class="mobile-nav-item"        id="mnav-items"      onclick="navigate('items')"><span>🔩</span>Items</div> <div class="mobile-nav-item"        id="mnav-scan"       onclick="navigate('scan')"><span>📷</span>Scan</div> <div class="mobile-nav-item"        id="mnav-more"       onclick="navigate('more')"><span>⋯</span>More</div>
 </nav> <div id="modal-root"></div> <script>
-const APP_VERSION = '1.3.90';
+const APP_VERSION = 'ALPHA v1.4.13';
 const APP_BUILD   = '2026-06-02';
 const THEME_KEY = 'erp-theme';
 function applyTheme(t) {
@@ -131,6 +132,7 @@ const DEFAULT_SHORTCUTS = {
   trends:            'u',
   newItem:           'n',
   search:            '/',
+  globalSearch:      'k',
 };
 const SHORTCUT_NAV_MAP = {
   dashboard:         'nav-dashboard',
@@ -476,7 +478,7 @@ async function renderProjects() {
   const projects = await get('/api/projects');
   const statusColor = {planning:'#818cf8',active:'#22c55e',complete:'#94a3b8',archived:'#64748b'};
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"> <div class="page-title">🗂 Projects</div><div class="page-sub">Build parts lists for upcoming builds and check stock availability before you start. Reserve parts directly from a project to hold them for later.</div> <button class="btn btn-primary" onclick="openAddProject()">＋ New Project</button> </div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div><div class="page-title">🗂 Projects</div><div class="page-sub">Build parts lists for upcoming builds and check stock availability before you start. Reserve parts directly from a project to hold them for later.</div></div><button class="btn btn-primary" onclick="openAddProject()">＋ New Project</button></div>
     ${!projects.length ? '<div class="card" style="padding:40px;text-align:center;color:var(--text-3)">No projects yet. Create one to start reserving parts.</div>' :
       projects.map(p=>`
       <div class="card" style="padding:16px;margin-bottom:12px;cursor:pointer" onclick="openProject(${p.id})"> <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"> <span style="font-weight:700;font-size:15px;color:var(--text-1);flex:1">${esc(p.name)}</span> <span class="badge" style="background:${statusColor[p.status]||'#818cf8'}20;color:${statusColor[p.status]||'#818cf8'}">${p.status}</span> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteProject(${p.id})">Del</button> </div>
@@ -1506,18 +1508,20 @@ async function renderSettings(tab='theme') {
     transactions:'Transactions', projects:'Projects', 'stock-take':'Stock Take',
     assets:'Assets', 'purchase-orders':'Purchase Orders', reports:'Reports', trends:'Usage Trends',
     newItem:'New Item (from Items page)', search:'Focus Search',
+    globalSearch:'🔍 Global Search',
   };
   const shortcutsTab = `
     <div class="card" style="padding:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px">Keyboard Shortcuts</div>
-      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Single key bindings. Shortcuts are disabled when typing in an input field or when a modal is open (except Escape).</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Single key bindings. Shortcuts are disabled when typing in an input field or when a modal is open (except Escape). Global Search always uses Ctrl/Cmd + the configured key.</div>
       <div style="display:grid;gap:6px">
         ${Object.entries(SHORTCUT_LABELS).map(([action, label]) => `
           <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;background:var(--bg-hover)">
             <span style="flex:1;font-size:13px;color:var(--text-1)">${label}</span>
+            ${action==='globalSearch'?'<kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:12px;color:var(--text-2);white-space:nowrap">Ctrl/Cmd +</kbd>':''}
             <input id="sc-${action}" class="input" style="width:56px;text-align:center;font-family:monospace;font-size:14px;padding:4px 8px"
               value="${esc(sc[action]||'')}" maxlength="1" placeholder="—"
-              oninput="this.value=this.value.slice(-1)"/>
+              oninput="this.value=this.value.slice(-1).toLowerCase()"/>
             <span style="font-size:11px;color:var(--text-3);min-width:60px">default: <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11px">${esc(DEFAULT_SHORTCUTS[action]||'—')}</kbd></span>
           </div>`).join('')}
       </div>
@@ -1531,11 +1535,6 @@ async function renderSettings(tab='theme') {
       <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">These are fixed shortcuts and cannot be reassigned.</div>
       <div style="display:grid;gap:6px">
         <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;background:var(--bg-hover)">
-          <span style="flex:1;font-size:13px;color:var(--text-1)">🔍 Global Search</span>
-          <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:12px;color:var(--text-2)">Ctrl + K</kbd>
-          <span style="font-size:11px;color:var(--text-3);min-width:60px">also Cmd+K</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;background:var(--bg-hover)">
           <span style="flex:1;font-size:13px;color:var(--text-1)">✕ Close Modal</span>
           <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:12px;color:var(--text-2)">Escape</kbd>
           <span style="font-size:11px;color:var(--text-3);min-width:60px">always active</span>
@@ -1546,7 +1545,49 @@ async function renderSettings(tab='theme') {
 
 
   // ── My Account tab ───────────────────────────────────────────────────────────
-  const accountTab = `
+  let _branding = {};
+  try { _branding = (await get('/api/settings/branding').catch(()=>({value:null}))).value || {}; } catch(e) {}
+
+  const brandingTab = `
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:16px">🖼️ Logo Image</div>
+      <div style="display:grid;gap:12px">
+        <div>
+          <label class="field-label">Logo <span style="font-size:10px;color:var(--text-3)">(shown in sidebar — leave blank for default)</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="br-logo" class="input" value="${esc(_branding.logo_url||'')}" placeholder="https://example.com/logo.png" oninput="document.getElementById('br-logo-preview').src=this.value;document.getElementById('br-logo-preview').style.display=this.value?'block':'none';document.getElementById('br-logo-empty').style.display=this.value?'none':'block'"/>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap">📁 Upload<input type="file" accept="image/*" style="display:none" onchange="_brUpload(this,'br-logo','br-logo-preview','br-logo-empty')"/></label>
+          </div>
+        </div>
+        <div style="background:var(--bg-hover);border-radius:8px;padding:12px;display:flex;align-items:center;gap:12px">
+          <img id="br-logo-preview" src="${esc(_branding.logo_url||'')}" style="max-height:60px;max-width:200px;object-fit:contain;border-radius:4px;display:${_branding.logo_url?'block':'none'}"/>
+          <span id="br-logo-empty" style="font-size:12px;color:var(--text-3);display:${_branding.logo_url?'none':'block'}">No logo set — default text will be shown</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:16px">⭐ Favicon</div>
+      <div style="display:grid;gap:12px">
+        <div>
+          <label class="field-label">Favicon <span style="font-size:10px;color:var(--text-3)">(browser tab icon — .ico, .png, .svg — leave blank for default)</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="br-favicon" class="input" value="${esc(_branding.favicon_url||'')}" placeholder="https://example.com/favicon.ico" oninput="_brFaviconPreview(this.value)"/>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap">📁 Upload<input type="file" accept="image/*,.ico" style="display:none" onchange="_brUpload(this,'br-favicon','br-favicon-preview','br-favicon-empty')"/></label>
+          </div>
+        </div>
+        <div style="background:var(--bg-hover);border-radius:8px;padding:12px;display:flex;align-items:center;gap:12px">
+          <img id="br-favicon-preview" src="${esc(_branding.favicon_url||'')}" style="width:32px;height:32px;object-fit:contain;image-rendering:pixelated;border-radius:4px;display:${_branding.favicon_url?'block':'none'}"/>
+          <span id="br-favicon-empty" style="font-size:12px;color:var(--text-3);display:${_branding.favicon_url?'none':'block'}">No favicon set — browser default will be used</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveBrandingSettings()">💾 Save Branding</button>
+      <button class="btn btn-secondary" onclick="saveBrandingSettings(true)">🗑️ Reset to Defaults</button>
+    </div>
+  `;
+
+    const accountTab = `
     <div class="card" style="padding:20px;margin-bottom:16px">
       <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:16px">Account Info</div>
       <div style="font-size:13px;display:grid;gap:8px">
@@ -1624,13 +1665,16 @@ async function renderSettings(tab='theme') {
   // ── MQTT tab ─────────────────────────────────────────────────────────────
   let mqttCfg = {};
   let mqttStatus = {connected:false, message:'Not configured', base_topic:'makerspace'};
+  let scaleCfg = {};
   try {
-    const [cfgRes, statusRes] = await Promise.all([
+    const [cfgRes, statusRes, scaleCfgRes] = await Promise.all([
       get('/api/settings/mqtt').catch(()=>({value:null})),
-      get('/api/mqtt/status').catch(()=>({connected:false,message:'Unavailable'}))
+      get('/api/mqtt/status').catch(()=>({connected:false,message:'Unavailable'})),
+      get('/api/settings/scale').catch(()=>({value:null}))
     ]);
     mqttCfg = cfgRes.value || {};
     mqttStatus = statusRes;
+    scaleCfg = scaleCfgRes?.value || {};
   } catch(e) {}
 
   const mqttTab = `
@@ -1676,6 +1720,67 @@ async function renderSettings(tab='theme') {
           <div style="font-size:13px;font-weight:600;color:var(--text-1)">${mqttStatus.connected?'Connected':'Disconnected'}</div>
           <div style="font-size:12px;color:var(--text-3)">${esc(mqttStatus.message||'')}${mqttStatus.connected?' · Base topic: '+esc(mqttStatus.base_topic):''}</div>
         </div>
+      </div>
+    </div>
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px">⚖️ Scale / Weigh QTY</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Count items by weight. Requires MQTT to be connected.</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="sc-enabled" style="accent-color:var(--accent)" ${scaleCfg.enabled?'checked':''}
+          onchange="document.getElementById('sc-fields').style.display=this.checked?'block':'none'"/>
+        Enable scale weighing feature
+      </label>
+      <div id="sc-fields" style="display:${scaleCfg.enabled?'block':'none'}">
+        <div style="margin-bottom:14px">
+          <label class="field-label">Scale Mode</label>
+          <select id="sc-mode" class="input" onchange="_scaleToggleMode(this.value)">
+            <option value="ha_entity" ${(scaleCfg.mode||'ha_entity')==='ha_entity'?'selected':''}>🏠 HA Entity — ERP creates a writable number in Home Assistant</option>
+            <option value="subscribe" ${scaleCfg.mode==='subscribe'?'selected':''}>📡 Subscribe — ERP listens to an existing MQTT topic</option>
+          </select>
+        </div>
+
+        <!-- HA Entity mode info -->
+        <div id="sc-mode-ha" style="display:${(scaleCfg.mode||'ha_entity')==='ha_entity'?'block':'none'};background:var(--bg-hover);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px">
+          <div style="font-weight:600;color:var(--text-2);margin-bottom:8px">Auto-generated MQTT topics</div>
+          <div style="display:grid;gap:6px">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span style="color:var(--text-3);min-width:110px">HA writes to:</span>
+              <code style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--accent)">${esc(mqttStatus.base_topic||'makerspace')}/scale/set</code>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span style="color:var(--text-3);min-width:110px">ERP publishes:</span>
+              <code style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--text-2)">${esc(mqttStatus.base_topic||'makerspace')}/scale/state</code>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Click <strong>Publish to HA</strong> after saving. Then in HA create an automation: when your scale sensor changes → call <code>number.set_value</code> on <em>Makerspace Scale</em>.</div>
+        </div>
+
+        <!-- Subscribe mode topic input -->
+        <div id="sc-mode-sub" style="display:${scaleCfg.mode==='subscribe'?'block':'none'};margin-bottom:14px">
+          <label class="field-label">Scale MQTT Topic</label>
+          <input id="sc-topic" class="input" value="${esc(scaleCfg.topic||'')}" placeholder="home/scale/weight"/>
+          <div style="font-size:11px;color:var(--text-3);margin-top:3px">Topic your scale publishes weight readings to (plain number payload)</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label class="field-label">Weight Unit</label>
+            <select id="sc-unit" class="input">
+              <option value="g"  ${(scaleCfg.unit||'g')==='g' ?'selected':''}>g (grams)</option>
+              <option value="kg" ${scaleCfg.unit==='kg'?'selected':''}>kg (kilograms)</option>
+              <option value="oz" ${scaleCfg.unit==='oz'?'selected':''}>oz (ounces)</option>
+              <option value="lb" ${scaleCfg.unit==='lb'?'selected':''}>lb (pounds)</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="testScaleReading()">📡 Test Reading</button>
+            <span id="sc-test-result" style="font-size:12px;color:var(--text-3)"></span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveScaleSettings()">💾 Save</button>
+        <button class="btn btn-secondary" onclick="publishScaleDiscovery()">📢 Publish to HA</button>
       </div>
     </div>`;
 
@@ -1793,8 +1898,8 @@ async function renderSettings(tab='theme') {
   `;
 
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"> <div class="page-title">⚙️ Settings</div><div class="page-sub">Personalize the app to your workflow — choose a color theme, show or hide sidebar items, and set your own keyboard shortcuts.</div> </div> <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px"> <button class="btn ${tab==='company'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('company')">🏢 Company</button> <button class="btn ${tab==='general'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('general')">⚙ General</button> <button class="btn ${tab==='theme'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('theme')">🎨 Theme</button> <button class="btn ${tab==='sidebar'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('sidebar')">📌 Sidebar</button> <button class="btn ${tab==='shortcuts'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('shortcuts')">⌨️ Shortcuts</button> <button class="btn ${tab==='mqtt'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('mqtt')">📡 MQTT</button> <button class="btn ${tab==='ha'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('ha')">🏠 Home Assistant</button> <button class="btn ${tab==='account'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('account')">👤 My Account</button> </div>
-    ${tab==='company' ? companyTab : tab==='general' ? generalTab : tab==='sidebar' ? sidebarTab : tab==='shortcuts' ? shortcutsTab : tab==='mqtt' ? mqttTab : tab==='ha' ? haTab : tab==='account' ? accountTab : themeTab}
+    <div style="margin-bottom:16px"><div class="page-title">⚙️ Settings</div><div class="page-sub">Personalize the app to your workflow — choose a color theme, show or hide sidebar items, and set your own keyboard shortcuts.</div></div> <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px"> <button class="btn ${tab==='company'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('company')">🏢 Company</button> <button class="btn ${tab==='general'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('general')">⚙ General</button> <button class="btn ${tab==='theme'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('theme')">🎨 Theme</button> <button class="btn ${tab==='sidebar'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('sidebar')">📌 Sidebar</button> <button class="btn ${tab==='shortcuts'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('shortcuts')">⌨️ Shortcuts</button> <button class="btn ${tab==='mqtt'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('mqtt')">📡 MQTT</button> <button class="btn ${tab==='ha'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('ha')">🏠 Home Assistant</button> <button class="btn ${tab==='account'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('account')">👤 My Account</button> <button class="btn ${tab==='branding'?'btn-primary':'btn-secondary'} btn-sm" onclick="renderSettings('branding')">🖼️ Branding</button> </div>
+    ${tab==='company' ? companyTab : tab==='general' ? generalTab : tab==='sidebar' ? sidebarTab : tab==='shortcuts' ? shortcutsTab : tab==='mqtt' ? mqttTab : tab==='ha' ? haTab : tab==='account' ? accountTab : tab==='branding' ? brandingTab : themeTab}
   `);
 
 }
@@ -1888,6 +1993,915 @@ async function mqttPublishDiscovery() {
     const r = await post('/api/mqtt/publish-discovery', {});
     toast(`📢 Published discovery for ${r.published} item(s)`);
   } catch(e) { toast(e.message||String(e)||'Unexpected error','error'); }
+}
+
+function _scaleToggleMode(mode) {
+  document.getElementById('sc-mode-ha').style.display  = mode === 'ha_entity' ? 'block' : 'none';
+  document.getElementById('sc-mode-sub').style.display = mode === 'subscribe'  ? 'block' : 'none';
+}
+
+async function saveScaleSettings() {
+  const enabled = document.getElementById('sc-enabled')?.checked || false;
+  const mode    = document.getElementById('sc-mode')?.value || 'ha_entity';
+  const topic   = document.getElementById('sc-topic')?.value.trim() || '';
+  const unit    = document.getElementById('sc-unit')?.value || 'g';
+  if (enabled && mode === 'subscribe' && !topic) { toast('Topic required for Subscribe mode', 'error'); return; }
+  try {
+    await post('/api/settings/scale', { enabled, mode, topic, unit });
+    if (enabled) await post('/api/scale/configure', {}).catch(()=>{});
+    toast('Scale settings saved!');
+    renderSettings('mqtt');
+  } catch(e) { toast(e.message||String(e)||'Unexpected error','error'); }
+}
+
+async function publishScaleDiscovery() {
+  try {
+    const r = await post('/api/scale/publish-discovery', {});
+    toast(r.status === 'published' ? '📢 Scale entity published to HA' : 'MQTT not connected', r.status === 'published' ? 'success' : 'error');
+  } catch(e) { toast(e.message||'Failed','error'); }
+}
+
+async function testScaleReading() {
+  const el = document.getElementById('sc-test-result');
+  if (el) el.textContent = 'Reading…';
+  try {
+    const r = await get('/api/scale/reading');
+    if (el) el.textContent = r.reading !== null ? `${r.reading} ${r.unit}` : 'No reading yet — is the scale publishing?';
+  } catch(e) { if (el) el.textContent = 'Error: ' + (e.message||String(e)); }
+}
+
+// ── Scale modal ──────────────────────────────────────────────────────────────
+let _scaleTimer = null;
+
+async function openScaleModal(itemId, itemName, currentQty, unitWeight) {
+  const s = await get('/api/scale/reading').catch(()=>null);
+  if (!s || !s.enabled) { toast('Scale not enabled — configure in Settings → MQTT', 'warn'); return; }
+
+  const uw = unitWeight || 0;
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">⚖️ Weigh Quantity</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">${esc(itemName)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--bg-hover);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">GROSS WEIGHT</div>
+        <div id="sw-gross" style="font-size:26px;font-weight:700;color:var(--text-1)">—</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${s.unit}</div>
+      </div>
+      <div style="background:var(--bg-hover);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">NET WEIGHT</div>
+        <div id="sw-net" style="font-size:26px;font-weight:700;color:var(--accent)">—</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${s.unit}</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:12px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="field-label" style="margin:0;min-width:90px">Tare weight</label>
+        <input id="sw-tare" type="number" step="any" class="input" style="width:100px" value="${s.tare}"/>
+        <span style="font-size:12px;color:var(--text-3)">${s.unit}</span>
+        <button class="btn btn-secondary btn-sm" onclick="_scaleSetTare()">Set from scale</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="field-label" style="margin:0;min-width:90px">Weight / unit</label>
+        <input id="sw-unit-weight" type="number" step="any" min="0.001" class="input" style="width:100px" value="${uw||''}"/>
+        <span style="font-size:12px;color:var(--text-3)">${s.unit} each</span>
+        <button class="btn btn-secondary btn-sm" onclick="_scaleSetUnitWeight(${itemId})">💾 Save to item</button>
+      </div>
+    </div>
+    <div style="background:var(--bg-hover);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">CALCULATED QTY</div>
+      <div id="sw-calc-qty" style="font-size:32px;font-weight:700;color:var(--success)">—</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:2px">units</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="sw-apply-btn" disabled onclick="_scaleApplyQty(${itemId},${currentQty})">✓ Apply Quantity</button>
+    </div>
+  `);
+
+  // Start polling
+  _scaleTimer = setInterval(_scalePoll, 600);
+  _scalePoll();
+}
+
+async function _scalePoll() {
+  const r = await get('/api/scale/reading').catch(()=>null);
+  if (!r) return;
+  const gross = r.reading;
+  const tare  = parseFloat(document.getElementById('sw-tare')?.value) || 0;
+  const uw    = parseFloat(document.getElementById('sw-unit-weight')?.value) || 0;
+
+  const grossEl = document.getElementById('sw-gross');
+  const netEl   = document.getElementById('sw-net');
+  const calcEl  = document.getElementById('sw-calc-qty');
+  const applyBtn= document.getElementById('sw-apply-btn');
+  if (!grossEl) { clearInterval(_scaleTimer); return; } // modal closed
+
+  if (gross !== null && gross !== undefined) {
+    grossEl.textContent = gross.toFixed(2);
+    const net = Math.max(0, gross - tare);
+    netEl.textContent = net.toFixed(2);
+    if (uw > 0) {
+      const qty = Math.round(net / uw * 100) / 100;
+      calcEl.textContent = qty;
+      if (applyBtn) applyBtn.disabled = false;
+    } else {
+      calcEl.textContent = '— set unit weight';
+      if (applyBtn) applyBtn.disabled = true;
+    }
+  } else {
+    grossEl.textContent = '—';
+    netEl.textContent = '—';
+    calcEl.textContent = '—';
+  }
+}
+
+async function _scaleSetTare() {
+  const r = await get('/api/scale/reading').catch(()=>null);
+  if (!r || r.reading === null) { toast('No reading from scale', 'error'); return; }
+  const tare = r.reading;
+  await post('/api/scale/tare', { value: tare });
+  const el = document.getElementById('sw-tare');
+  if (el) el.value = tare;
+  toast(`Tare set to ${tare}`);
+}
+
+async function _scaleSetUnitWeight(itemId) {
+  const uw = parseFloat(document.getElementById('sw-unit-weight')?.value);
+  if (!uw || uw <= 0) { toast('Enter a valid unit weight first', 'error'); return; }
+  await patch('/api/items/'+itemId, { unit_weight: uw });
+  toast(`Unit weight saved (${uw} per unit)`);
+}
+
+async function _scaleApplyQty(itemId, currentQty) {
+  const calcEl = document.getElementById('sw-calc-qty');
+  const qty = parseFloat(calcEl?.textContent);
+  if (isNaN(qty) || qty < 0) { toast('Invalid quantity', 'error'); return; }
+  const change = Math.round((qty - currentQty) * 1000) / 1000;
+  try {
+    await post('/api/items/'+itemId+'/transactions', {
+      transaction_type: 'adjustment',
+      quantity_change: change,
+      notes: 'Set via scale weighing',
+    });
+    clearInterval(_scaleTimer);
+    closeModal();
+    toast(`Quantity set to ${qty}`);
+    if (currentPage === 'items') renderItems();
+    else openItem(itemId);
+  } catch(e) { toast(e.message||'Failed to apply quantity','error'); }
+}
+
+async function openSpoolScaleModal(itemId, spoolIdx, emptyWeight, unitName, packageSize) {
+  const s = await get('/api/scale/reading').catch(()=>null);
+  if (!s || !s.enabled) { toast('Scale not enabled — configure in Settings → MQTT', 'warn'); return; }
+  const ew = emptyWeight || 0;
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">⚖️ Weigh Spool #${spoolIdx+1}</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Place spool on scale to measure remaining ${unitName}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--bg-hover);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">GROSS WEIGHT</div>
+        <div id="ssw-gross" style="font-size:26px;font-weight:700;color:var(--text-1)">—</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${s.unit}</div>
+      </div>
+      <div style="background:var(--bg-hover);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">REMAINING</div>
+        <div id="ssw-remaining" style="font-size:26px;font-weight:700;color:var(--accent)">—</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${unitName}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <label class="field-label" style="margin:0;min-width:130px">Empty spool weight</label>
+      <input id="ssw-empty-weight" type="number" step="any" min="0" class="input" style="width:100px" value="${ew||''}"/>
+      <span style="font-size:12px;color:var(--text-3)">${s.unit}</span>
+      <button class="btn btn-secondary btn-sm" onclick="_spoolScaleSaveEmptyWeight(${itemId})">💾 Save to item</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:16px">
+      Scale unit (${s.unit}) should match item unit (${unitName}). Capped at package size (${packageSize} ${unitName}).
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="ssw-apply-btn" disabled onclick="_spoolScaleApply(${itemId},${spoolIdx},${packageSize})">✓ Apply to Spool</button>
+    </div>
+  `);
+  _scaleTimer = setInterval(_spoolScalePoll, 600);
+  _spoolScalePoll();
+}
+
+async function _spoolScalePoll() {
+  const r = await get('/api/scale/reading').catch(()=>null);
+  if (!r) return;
+  const gross = r.reading;
+  const ew = parseFloat(document.getElementById('ssw-empty-weight')?.value) || 0;
+  const grossEl = document.getElementById('ssw-gross');
+  const remEl   = document.getElementById('ssw-remaining');
+  const applyBtn= document.getElementById('ssw-apply-btn');
+  if (!grossEl) { clearInterval(_scaleTimer); return; }
+  if (gross !== null && gross !== undefined) {
+    grossEl.textContent = gross.toFixed(2);
+    const remaining = Math.max(0, +(( gross - ew).toFixed(2)));
+    remEl.textContent = remaining.toFixed(2);
+    if (applyBtn) applyBtn.disabled = false;
+  } else {
+    grossEl.textContent = '—';
+    remEl.textContent = '—';
+    if (applyBtn) applyBtn.disabled = true;
+  }
+}
+
+async function _spoolScaleSaveEmptyWeight(itemId) {
+  const ew = parseFloat(document.getElementById('ssw-empty-weight')?.value);
+  if (!ew || ew <= 0) { toast('Enter a valid empty spool weight first', 'error'); return; }
+  await patch('/api/items/'+itemId, { spool_empty_weight: ew });
+  toast('Empty spool weight saved (' + ew + 'g)');
+}
+
+async function _spoolScaleApply(itemId, spoolIdx, packageSize) {
+  const remEl = document.getElementById('ssw-remaining');
+  const remaining = parseFloat(remEl?.textContent);
+  if (isNaN(remaining) || remaining < 0) { toast('No valid reading', 'error'); return; }
+  const capped = Math.min(remaining, packageSize);
+  try {
+    const item = await get('/api/items/'+itemId);
+    const spools = _getSpools(item);
+    spools[spoolIdx] = { ...spools[spoolIdx], remaining: capped };
+    await _saveSpools(itemId, spools, packageSize);
+    clearInterval(_scaleTimer);
+    closeModal();
+    toast('Spool #' + (spoolIdx+1) + ' updated: ' + capped + ' remaining');
+    openItem(itemId);
+  } catch(e) { toast(e.message||'Failed to apply', 'error'); }
+}
+
+async function openFormScaleModal(targetFieldId) {
+  const panel = document.getElementById('fsm-panel');
+  if (!panel) { toast('Scale panel not available here', 'warn'); return; }
+
+  // Toggle off if already open for same field
+  if (panel.style.display !== 'none' && panel.dataset.target === targetFieldId) {
+    clearInterval(_scaleTimer);
+    panel.style.display = 'none';
+    panel.innerHTML = '';
+    return;
+  }
+
+  const s = await get('/api/scale/reading').catch(()=>null);
+  if (!s || !s.enabled) { toast('Scale not enabled — configure in Settings → MQTT', 'warn'); return; }
+
+  const existingUW = parseFloat(document.getElementById('f-unit-weight')?.value) || 0;
+  const isSpool = document.getElementById('f-pkg-behavior')?.value === 'spool';
+  const existingEW = parseFloat(document.getElementById('f-spool-empty-weight')?.value) || 0;
+
+  panel.dataset.target = targetFieldId;
+  panel.innerHTML = `
+    <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-weight:600;color:var(--text-1)">⚖️ Fill from Scale</span>
+        <button class="btn btn-secondary btn-sm" onclick="_fsmClose()">✕</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="flex:1;background:var(--bg-card);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-3);margin-bottom:2px">READING</div>
+          <div id="fsm-gross" style="font-size:22px;font-weight:700;color:var(--text-1)">—</div>
+          <div style="font-size:10px;color:var(--text-3)">${s.unit}</div>
+        </div>
+        <div style="flex:1;background:var(--bg-card);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-3);margin-bottom:2px">${isSpool?'REMAINING':'RESULT'}</div>
+          <div id="fsm-result" style="font-size:22px;font-weight:700;color:var(--success)">—</div>
+          <div style="font-size:10px;color:var(--text-3)">${isSpool?s.unit:'units'}</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0;min-width:100px;font-size:11px">Tare</label>
+          <input id="fsm-tare" type="number" step="any" class="input" style="width:80px;padding:5px 8px;font-size:13px" value="${s.tare||0}"/>
+          <span style="font-size:11px;color:var(--text-3)">${s.unit}</span>
+          <button class="btn btn-secondary btn-sm" onclick="_fsmSetTare()">Set</button>
+        </div>
+        ${isSpool ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0;min-width:100px;font-size:11px">Empty spool wt</label>
+          <input id="fsm-empty-wt" type="number" step="any" min="0" class="input" style="width:80px;padding:5px 8px;font-size:13px" value="${existingEW||''}"/>
+          <span style="font-size:11px;color:var(--text-3)">${s.unit}</span>
+        </div>` : `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0;min-width:100px;font-size:11px">Weight / unit</label>
+          <input id="fsm-unit-wt" type="number" step="any" min="0.001" class="input" style="width:80px;padding:5px 8px;font-size:13px" value="${existingUW||''}"/>
+          <span style="font-size:11px;color:var(--text-3)">${s.unit} each</span>
+          <button class="btn btn-secondary btn-sm" onclick="_fsmSetUnitWeight()">📏 Set from scale</button>
+        </div>`}
+      </div>
+      <button class="btn btn-primary btn-sm" id="fsm-apply-btn" disabled onclick="_fsmApply()" style="width:100%">✓ Use This Value</button>
+    </div>`;
+  panel.style.display = 'block';
+
+  _scaleTimer = setInterval(_fsmPoll, 600);
+  _fsmPoll();
+}
+
+async function _fsmPoll() {
+  const r = await get('/api/scale/reading').catch(()=>null);
+  if (!r) return;
+  const gross = r.reading;
+  const grossEl  = document.getElementById('fsm-gross');
+  const resultEl = document.getElementById('fsm-result');
+  const applyBtn = document.getElementById('fsm-apply-btn');
+  if (!grossEl) { clearInterval(_scaleTimer); return; }
+
+  if (gross !== null && gross !== undefined) {
+    grossEl.textContent = gross.toFixed(2);
+    const tare = parseFloat(document.getElementById('fsm-tare')?.value) || 0;
+    const net  = Math.max(0, gross - tare);
+    const emptyWtEl = document.getElementById('fsm-empty-wt');
+    const unitWtEl  = document.getElementById('fsm-unit-wt');
+    if (emptyWtEl) {
+      const ew = parseFloat(emptyWtEl.value) || 0;
+      resultEl.textContent = Math.max(0, +(( gross - tare - ew).toFixed(2)));
+    } else {
+      const uw = parseFloat(unitWtEl?.value) || 0;
+      resultEl.textContent = uw > 0 ? Math.round(net / uw * 100) / 100 : net.toFixed(2);
+    }
+    if (applyBtn) applyBtn.disabled = false;
+  } else {
+    grossEl.textContent = '—';
+    resultEl.textContent = '—';
+    if (applyBtn) applyBtn.disabled = true;
+  }
+}
+
+async function _fsmSetTare() {
+  const r = await get('/api/scale/reading').catch(()=>null);
+  if (!r || r.reading === null) { toast('No reading from scale', 'error'); return; }
+  await post('/api/scale/tare', { value: r.reading });
+  const el = document.getElementById('fsm-tare');
+  if (el) el.value = r.reading;
+  toast('Tare set to ' + r.reading);
+}
+
+function _fsmSetUnitWeight() {
+  const grossEl = document.getElementById('fsm-gross');
+  const gross = parseFloat(grossEl?.textContent);
+  if (isNaN(gross)) { toast('No scale reading yet', 'warn'); return; }
+  const tare = parseFloat(document.getElementById('fsm-tare')?.value) || 0;
+  const net  = Math.max(0, +(( gross - tare).toFixed(4)));
+  if (net <= 0) { toast('Net weight is zero — check tare', 'warn'); return; }
+  const uwEl = document.getElementById('fsm-unit-wt');
+  if (uwEl) { uwEl.value = net; uwEl.dispatchEvent(new Event('input')); }
+  toast('Unit weight set to ' + net);
+}
+
+function _fsmClose() {
+  clearInterval(_scaleTimer);
+  const panel = document.getElementById('fsm-panel');
+  if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+}
+
+function _fsmApply() {
+  const panel  = document.getElementById('fsm-panel');
+  const target = document.getElementById(panel?.dataset.target);
+  const val    = parseFloat(document.getElementById('fsm-result')?.textContent);
+  if (isNaN(val) || val < 0) { toast('No valid reading', 'error'); return; }
+
+  // Sync empty spool weight back to form field if in spool mode
+  const ewEl = document.getElementById('fsm-empty-wt');
+  const formEwEl = document.getElementById('f-spool-empty-weight');
+  if (ewEl && formEwEl) formEwEl.value = ewEl.value;
+
+  // Sync unit weight back to form field
+  const uwEl = document.getElementById('fsm-unit-wt');
+  const formUwEl = document.getElementById('f-unit-weight');
+  if (uwEl && formUwEl && uwEl.value) formUwEl.value = uwEl.value;
+
+  if (target) {
+    target.value = val;
+    target.dispatchEvent(new Event('input'));
+  }
+  _fsmClose();
+  toast('Set to ' + val);
+}
+
+async function openMergeModal(primaryId, primaryName) {
+  const allItems = await get('/api/items');
+  const others = allItems.filter(i => i.id !== primaryId);
+
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">⇄ Merge Item</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">
+      <strong style="color:var(--text-1)">${esc(primaryName)}</strong> will absorb the selected item — its quantity, transactions, locations, and supplier links will be combined. The other item is permanently deleted.
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="field-label">Search for item to merge in</label>
+      <input id="merge-search" class="input" placeholder="Type to filter…" oninput="_mergeFilter(${primaryId})"/>
+    </div>
+    <div id="merge-results" style="max-height:280px;overflow-y:auto;display:grid;gap:6px;margin-bottom:16px">
+      ${others.map(i => _mergeItemRow(i, primaryId)).join('')}
+    </div>
+    <div id="merge-preview" style="display:none;background:var(--bg-hover);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="merge-confirm-btn" style="display:none" onclick="_doMerge(${primaryId},'${esc(primaryName)}')">⇄ Merge & Delete Source</button>
+    </div>
+  `, 'lg');
+
+  window._mergeSourceId = null;
+  window._mergeAllItems = others;
+}
+
+function _mergeItemRow(item, primaryId) {
+  const cat = item.category?.name || '—';
+  const loc = item.locations?.map(l=>l.location?.name).filter(Boolean).join(', ') || '—';
+  return `<div class="merge-row" data-id="${item.id}" data-name="${esc(item.name).toLowerCase()}"
+    style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .12s"
+    onclick="_mergeSelect(${item.id},'${esc(item.name)}',${item.quantity},'${esc(item.unit_name)}',${primaryId})"
+    onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=_mergeSourceId===${item.id}?'var(--accent)':'var(--border)'">
+    <div style="font-weight:600;color:var(--text-1)">${esc(item.name)}</div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:2px">${esc(cat)} · ${item.quantity} ${esc(item.unit_name)} · ${esc(loc)}</div>
+  </div>`;
+}
+
+function _mergeFilter(primaryId) {
+  const q = document.getElementById('merge-search')?.value.toLowerCase() || '';
+  document.querySelectorAll('.merge-row').forEach(row => {
+    row.style.display = (!q || row.dataset.name.includes(q)) ? '' : 'none';
+  });
+}
+
+async function _mergeSelect(sourceId, sourceName, sourceQty, sourceUnit, originalPrimaryId) {
+  window._mergeSourceId = sourceId;
+  window._mergePrimaryId = originalPrimaryId;
+  window._mergeLocationMap = {};
+  // Highlight selected row
+  document.querySelectorAll('.merge-row').forEach(r => {
+    r.style.borderColor = parseInt(r.dataset.id) === sourceId ? 'var(--accent)' : 'var(--border)';
+    r.style.background  = parseInt(r.dataset.id) === sourceId ? 'var(--bg-hover)' : '';
+  });
+  await _renderMergePreview();
+}
+
+async function _renderMergePreview() {
+  const primaryId = window._mergePrimaryId;
+  const sourceId  = window._mergeSourceId;
+  const primary = await get('/api/items/' + primaryId);
+  const source  = await get('/api/items/' + sourceId);
+  const combinedQty = +((primary.quantity + source.quantity).toFixed(4));
+  const preview = document.getElementById('merge-preview');
+  if (!preview) return;
+  preview.style.display = 'block';
+  preview.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-weight:600;color:var(--text-1)">Merge preview</span>
+      <button class="btn btn-secondary btn-sm" onclick="_swapMerge()" title="Swap which item is kept">⇄ Swap</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:10px">
+      <div style="background:var(--bg-card);border:2px solid var(--success);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--success);margin-bottom:4px">✓ KEEP</div>
+        <div style="font-weight:600;color:var(--text-1);font-size:13px">${esc(primary.name)}</div>
+        <div style="font-size:12px;color:var(--text-2);margin-top:2px">${primary.quantity} ${esc(primary.unit_name)}</div>
+      </div>
+      <div style="font-size:20px;color:var(--text-3);text-align:center">+</div>
+      <div style="background:var(--bg-card);border:2px solid var(--danger);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--danger);margin-bottom:4px">🗑 DELETE</div>
+        <div style="font-weight:600;color:var(--text-1);font-size:13px">${esc(source.name)}</div>
+        <div style="font-size:12px;color:var(--text-2);margin-top:2px">${source.quantity} ${esc(source.unit_name)}</div>
+      </div>
+    </div>
+    <div style="background:var(--bg-card);border-radius:8px;padding:10px;text-align:center;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:2px">COMBINED RESULT</div>
+      <div style="font-size:20px;font-weight:700;color:var(--success)">${combinedQty} ${esc(primary.unit_name)}</div>
+    </div>
+    <div style="font-size:11px;color:var(--warn)">⚠️ Everything from <strong>${esc(source.name)}</strong> moves to <strong>${esc(primary.name)}</strong>, then <strong>${esc(source.name)}</strong> is permanently deleted.</div>
+    ${source.locations && source.locations.length ? `
+    <details style="margin-top:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <summary style="cursor:pointer;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:6px;background:var(--bg-card)">
+        ▶ 📍 Location merging (${source.locations.length} source location${source.locations.length!==1?'s':''})
+      </summary>
+      <div style="padding:10px 12px;font-size:12px">
+        <div style="color:var(--text-3);margin-bottom:8px">Choose where each source location's quantity goes on the primary item:</div>
+        ${source.locations.map(sl => {
+          const primaryLocOpts = primary.locations.map(pl =>
+            `<option value="${pl.location_id}" ${pl.location_id===sl.location_id?'selected':''}>${esc(pl.location?.name||'Loc '+pl.location_id)} (${pl.quantity} ${esc(primary.unit_name)})</option>`
+          ).join('');
+          const hasSameLoc = primary.locations.some(pl => pl.location_id === sl.location_id);
+          return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="color:var(--text-1);min-width:120px;font-weight:500">${esc(sl.location?.name||'Loc '+sl.location_id)}</span>
+            <span style="color:var(--text-3)">${sl.quantity} ${esc(source.unit_name)}</span>
+            <span style="color:var(--text-3)">→</span>
+            <select class="input merge-loc-sel" style="flex:1;padding:4px 8px;font-size:12px" data-src="${sl.location_id}" onchange="window._mergeLocationMap=window._mergeLocationMap||{};window._mergeLocationMap[${sl.location_id}]=parseInt(this.value)||${sl.location_id}">
+              ${primaryLocOpts}
+              ${!hasSameLoc?`<option value="${sl.location_id}" selected>Keep as its own location</option>`:''}
+            </select>
+          </div>`;
+        }).join('')}
+      </div>
+    </details>` : ''}
+  `;
+  const btn = document.getElementById('merge-confirm-btn');
+  if (btn) btn.style.display = '';
+}
+
+function _swapMerge() {
+  const tmp = window._mergePrimaryId;
+  window._mergePrimaryId = window._mergeSourceId;
+  window._mergeSourceId  = tmp;
+  _renderMergePreview();
+}
+
+async function _doMerge(originalPrimaryId, primaryName) {
+  const primaryId = window._mergePrimaryId;
+  const sourceId  = window._mergeSourceId;
+  if (!sourceId || !primaryId) return;
+  try {
+    const result = await post('/api/items/' + primaryId + '/merge', { source_id: sourceId, location_map: window._mergeLocationMap || {} });
+    closeModal();
+    toast('Merged — keeping ' + result.name);
+    openItem(primaryId);
+  } catch(e) { toast(e.message || 'Merge failed', 'error'); }
+}
+
+async function openBulkMergeModal() {
+  const ids = [...selectedItems];
+  if (ids.length < 2) { toast('Select at least 2 items to merge', 'warn'); return; }
+  const allItems = await get('/api/items');
+  const selected = allItems.filter(i => ids.includes(i.id));
+
+  window._bulkMergePrimaryId = null;
+  window._bulkMergeItems = selected;
+  window._mergeLocationMap = {};
+
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">⇄ Merge ${ids.length} Items</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Click an item to designate it as the one to <strong style="color:var(--success)">keep</strong>. All others will be absorbed into it and deleted.</div>
+    <div id="bm-item-list" style="display:grid;gap:6px;margin-bottom:14px">
+      ${selected.map(i => `
+        <div id="bm-row-${i.id}" onclick="bulkMergeSelectPrimary(${i.id})"
+          style="border:2px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:10px"
+          onmouseover="if(window._bulkMergePrimaryId!==${i.id})this.style.borderColor='var(--accent)'"
+          onmouseout="if(window._bulkMergePrimaryId!==${i.id})this.style.borderColor='var(--border)'">
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--text-1);font-size:13px">${esc(i.name)}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">${i.quantity} ${esc(i.unit_name)} · ${esc(i.category?.name||'—')} · ${i.locations?.map(l=>esc(l.location?.name||'?')).join(', ')||'no location'}</div>
+          </div>
+          <span id="bm-badge-${i.id}" style="font-size:11px;font-weight:700;display:none"></span>
+        </div>`).join('')}
+    </div>
+    <div id="bm-preview" style="display:none;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="bm-confirm-btn" style="display:none" onclick="_doBulkMerge()">⇄ Merge All</button>
+    </div>
+  `, 'lg');
+}
+
+function bulkMergeSelectPrimary(primaryId) {
+  window._bulkMergePrimaryId = primaryId;
+  window._mergeLocationMap = {};
+  const items = window._bulkMergeItems;
+
+  // Update row styles
+  items.forEach(i => {
+    const row   = document.getElementById('bm-row-' + i.id);
+    const badge = document.getElementById('bm-badge-' + i.id);
+    if (i.id === primaryId) {
+      row.style.borderColor = 'var(--success)';
+      row.style.background  = 'var(--bg-hover)';
+      badge.textContent = '✓ KEEP';
+      badge.style.color = 'var(--success)';
+      badge.style.display = '';
+    } else {
+      row.style.borderColor = 'var(--danger)';
+      row.style.background  = '';
+      badge.textContent = '🗑 DELETE';
+      badge.style.color = 'var(--danger)';
+      badge.style.display = '';
+    }
+  });
+
+  // Build preview
+  const primary  = items.find(i => i.id === primaryId);
+  const sources  = items.filter(i => i.id !== primaryId);
+  const totalQty = +((items.reduce((s,i) => s + (i.quantity||0), 0)).toFixed(4));
+
+  // Collect all source locations
+  const sourceLocsAll = [];
+  sources.forEach(src => (src.locations||[]).forEach(sl => sourceLocsAll.push({...sl, _srcName: src.name, _srcId: src.id})));
+  const primaryLocIds = new Set((primary.locations||[]).map(pl => pl.location_id));
+
+  const locRows = sourceLocsAll.map(sl => {
+    const primaryLocOpts = (primary.locations||[]).map(pl =>
+      `<option value="${pl.location_id}" ${pl.location_id===sl.location_id?'selected':''}>${esc(pl.location?.name||'Loc '+pl.location_id)} (${pl.quantity} ${esc(primary.unit_name)})</option>`
+    ).join('');
+    const hasSameLoc = primaryLocIds.has(sl.location_id);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;font-size:12px">
+      <span style="color:var(--text-3);min-width:80px">${esc(sl._srcName)}</span>
+      <span style="color:var(--text-1);font-weight:500">${esc(sl.location?.name||'?')}</span>
+      <span style="color:var(--text-3)">${sl.quantity} ${esc(primary.unit_name)} →</span>
+      <select class="input merge-loc-sel" style="flex:1;padding:3px 7px;font-size:12px" data-src="${sl.location_id}" onchange="window._mergeLocationMap=window._mergeLocationMap||{};window._mergeLocationMap[${sl.location_id}]=parseInt(this.value)||${sl.location_id}">
+        ${primaryLocOpts}
+        ${!hasSameLoc ? `<option value="${sl.location_id}" selected>Keep as its own location</option>` : ''}
+      </select>
+    </div>`;
+  }).join('');
+
+  document.getElementById('bm-preview').style.display = 'block';
+  document.getElementById('bm-preview').innerHTML = `
+    <div style="background:var(--bg-hover);border-radius:10px;padding:12px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-weight:600;font-size:13px;color:var(--text-1)">Result: <strong style="color:var(--success)">${esc(primary.name)}</strong> with <strong style="color:var(--success)">${totalQty} ${esc(primary.unit_name)}</strong></span>
+        <span style="font-size:11px;color:var(--danger)">${sources.length} item${sources.length!==1?'s':''} deleted</span>
+      </div>
+      ${sourceLocsAll.length ? `
+      <details style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <summary style="cursor:pointer;padding:6px 10px;font-size:11px;font-weight:600;color:var(--text-2);list-style:none;background:var(--bg-card)">
+          ▶ 📍 Location merging (${sourceLocsAll.length} source location${sourceLocsAll.length!==1?'s':''})
+        </summary>
+        <div style="padding:8px 10px">${locRows}</div>
+      </details>` : ''}
+    </div>`;
+
+  document.getElementById('bm-confirm-btn').style.display = '';
+}
+
+async function _doBulkMerge() {
+  const primaryId = window._bulkMergePrimaryId;
+  if (!primaryId) return;
+  const sources = (window._bulkMergeItems||[]).filter(i => i.id !== primaryId);
+  const btn = document.getElementById('bm-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Merging…'; }
+  try {
+    for (const src of sources) {
+      await post('/api/items/' + primaryId + '/merge', {
+        source_id: src.id,
+        location_map: window._mergeLocationMap || {},
+      });
+    }
+    closeModal();
+    clearBulkSelection();
+    toast('Merged ' + sources.length + ' item' + (sources.length!==1?'s':'') + ' into primary');
+    openItem(primaryId);
+  } catch(e) {
+    toast(e.message || 'Merge failed', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '⇄ Merge All'; }
+  }
+}
+
+// ── Kit CSV Import ────────────────────────────────────────────────────────────
+
+function kitDownloadExampleCSV() {
+  const rows = [
+    'name,quantity,sku,unit',
+    'PLA Filament 1kg Black,2,,spool',
+    'M3x10 Socket Head Screw,50,SCR-M3-10,pcs',
+    'M3 Hex Nut,50,NUT-M3,pcs',
+    'Arduino Nano,1,ARD-NANO,pcs',
+    '22 AWG Wire Red,3,,m',
+    'Heat Shrink Tubing,10,,pcs',
+  ];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kit_components_example.csv';
+  a.click();
+}
+
+function _kitParseCSV(text) {
+  // Returns array of {name, quantity, sku, barcode, unit_name}
+  const lines = text.trim().split(/\r?\n/);
+  if (!lines.length) return [];
+  const raw_headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  // Accept flexible header names
+  const col = (aliases) => { for (const a of aliases) { const i = raw_headers.indexOf(a); if (i >= 0) return i; } return -1; };
+  const iName = col(['name','item','item name','component','description']);
+  const iQty  = col(['quantity','qty','amount','count']);
+  const iSku  = col(['sku','part number','part no','partno']);
+  const iBar  = col(['barcode','upc','ean']);
+  const iUnit = col(['unit','unit_name','units','uom']);
+  if (iName < 0) return null; // no name column
+
+  const rows = [];
+  for (let li = 1; li < lines.length; li++) {
+    const line = lines[li].trim();
+    if (!line) continue;
+    // Simple CSV split respecting quoted fields
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let ci = 0; ci < line.length; ci++) {
+      const ch = line[ci];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    vals.push(cur.trim());
+    const get = (i) => i >= 0 ? (vals[i]||'').replace(/^"|"$/g,'').trim() : '';
+    const name = get(iName);
+    if (!name) continue;
+    rows.push({
+      name,
+      quantity: parseFloat(get(iQty)) || 1,
+      sku:      get(iSku)  || null,
+      barcode:  get(iBar)  || null,
+      unit_name:get(iUnit) || null,
+    });
+  }
+  return rows;
+}
+
+function _kitFuzzyMatch(csvRow, allItems) {
+  // Returns {exact: Item|null, candidates: Item[]}
+  const q = csvRow.name.toLowerCase().trim();
+  let exact = null;
+  const candidates = [];
+
+  for (const item of allItems) {
+    const n = item.name.toLowerCase();
+    if (n === q) { exact = item; break; }
+    // Also match by SKU or barcode if present
+    if (csvRow.sku && item.sku && item.sku.toLowerCase() === csvRow.sku.toLowerCase()) { exact = item; break; }
+    if (csvRow.barcode && item.barcode && item.barcode === csvRow.barcode) { exact = item; break; }
+  }
+  if (!exact) {
+    for (const item of allItems) {
+      const n = item.name.toLowerCase();
+      if (n.includes(q) || q.includes(n) || _kitStrSim(q, n) >= 0.6) {
+        candidates.push(item);
+      }
+    }
+    candidates.sort((a,b) => _kitStrSim(q,b.name.toLowerCase()) - _kitStrSim(q,a.name.toLowerCase()));
+  }
+  return { exact, candidates: exact ? [] : candidates.slice(0,6) };
+}
+
+function _kitStrSim(a, b) {
+  // Simple bigram similarity
+  const bigrams = s => { const bg = new Set(); for (let i=0;i<s.length-1;i++) bg.add(s[i]+s[i+1]); return bg; };
+  const ba = bigrams(a), bb = bigrams(b);
+  let inter = 0; ba.forEach(g => { if (bb.has(g)) inter++; });
+  return (2 * inter) / (ba.size + bb.size + 0.001);
+}
+
+async function kitImportCSV(input, kitId) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const text = await file.text();
+  const rows = _kitParseCSV(text);
+  if (!rows) { toast('CSV must have a "name" column', 'error'); return; }
+  if (!rows.length) { toast('No rows found in CSV', 'warn'); return; }
+  const allItems = await get('/api/items');
+  openKitImportReview(kitId, rows, allItems);
+}
+
+function openKitImportReview(kitId, rows, allItems) {
+  const matched = rows.map(row => {
+    const { exact, candidates } = _kitFuzzyMatch(row, allItems);
+    const chosen = exact ? { type:'item', id:exact.id, name:exact.name } : { type:'new' };
+    return { row, exact, candidates, chosen };
+  });
+  window._kitImportMatched = matched;
+  window._kitImportKitId   = kitId;
+  window._kitImportItems   = allItems;
+
+  showModal(`
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">⬆ Import Kit Components</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">${rows.length} row${rows.length!==1?'s':''} found. For each row, confirm the match, search for a different item, or add as new.</div>
+    <div style="margin-bottom:16px;max-height:55vh;overflow-y:auto;display:grid;gap:8px" id="kit-import-rows"></div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:12px" id="kit-import-summary"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="kit-import-confirm-btn" onclick="_kitImportConfirm()">✓ Import Components</button>
+    </div>
+  `, 'lg');
+
+  _kitImportRenderRows();
+}
+
+function _kitImportRenderRows() {
+  const matched = window._kitImportMatched || [];
+  const el = document.getElementById('kit-import-rows');
+  if (!el) return;
+  el.innerHTML = matched.map((m, idx) => {
+    const isNew  = m.chosen.type === 'new';
+    const isItem = m.chosen.type === 'item';
+    const badge  = m.exact ? `<span class="badge badge-green" style="font-size:10px">✓ exact</span>`
+                 : m.candidates.length ? `<span class="badge badge-yellow" style="font-size:10px">~ similar</span>`
+                 : `<span class="badge badge-blue" style="font-size:10px">no match</span>`;
+    const chosenLabel = isNew
+      ? `<span style="color:var(--accent);font-size:12px;font-weight:500">＋ New item</span>`
+      : `<span style="color:var(--success);font-size:12px;font-weight:500">✓ ${esc(m.chosen.name)}</span>`;
+    return `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-weight:600;color:var(--text-1);flex:1;font-size:13px">${esc(m.row.name)}</span>
+        <span style="font-size:12px;color:var(--text-3)">qty: ${m.row.quantity}</span>
+        ${badge}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        ${chosenLabel}
+        <button class="btn btn-secondary btn-sm" onclick="_kitImportToggleSearch(${idx})" style="font-size:11px;padding:3px 8px">🔍 Search</button>
+        <button class="btn btn-secondary btn-sm" onclick="_kitImportSetNew(${idx})" style="font-size:11px;padding:3px 8px">＋ New item</button>
+      </div>
+      <div id="kit-search-${idx}" style="display:none;margin-top:8px">
+        <input class="input" style="font-size:12px;padding:5px 8px;margin-bottom:6px" placeholder="Search items…"
+          oninput="_kitImportSearch(${idx},this.value)" value=""/>
+        <div id="kit-search-results-${idx}" style="max-height:140px;overflow-y:auto;display:grid;gap:3px">
+          ${m.candidates.map(c => `<div class="kit-search-result" onclick="_kitImportChoose(${idx},${c.id},'${esc(c.name).replace(/'/g,"\'")}',this)"
+            style="padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;background:var(--bg-hover)"
+            onmouseover="this.style.background='var(--accent)';this.style.color='#fff'"
+            onmouseout="this.style.background='var(--bg-hover)';this.style.color=''">
+            ${esc(c.name)} <span style="opacity:.6">(${c.unit_name})</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  _kitImportRefreshConfirm();
+}
+
+function _kitImportToggleSearch(idx) {
+  const el = document.getElementById('kit-search-' + idx);
+  if (!el) return;
+  const visible = el.style.display !== 'none';
+  el.style.display = visible ? 'none' : 'block';
+  if (!visible) {
+    const input = el.querySelector('input');
+    if (input) { input.focus(); if (!input.value) _kitImportSearch(idx, ''); }
+  }
+}
+
+function _kitImportSearch(idx, q) {
+  const allItems = window._kitImportItems || [];
+  const results  = document.getElementById('kit-search-results-' + idx);
+  if (!results) return;
+  const lower = q.toLowerCase().trim();
+  const filtered = lower
+    ? allItems.filter(i => i.name.toLowerCase().includes(lower) || (i.sku||'').toLowerCase().includes(lower)).slice(0,10)
+    : (window._kitImportMatched[idx].candidates.length
+        ? window._kitImportMatched[idx].candidates
+        : allItems.slice(0,10));
+  if (!filtered.length) { results.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:4px 8px">No items found</div>'; return; }
+  results.innerHTML = filtered.map(c => `<div class="kit-search-result" onclick="_kitImportChoose(${idx},${c.id},'${esc(c.name).replace(/'/g,"\'")}',this)"
+    style="padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;background:var(--bg-hover)"
+    onmouseover="this.style.background='var(--accent)';this.style.color='#fff'"
+    onmouseout="this.style.background='var(--bg-hover)';this.style.color=''">
+    ${esc(c.name)} <span style="opacity:.6">(${c.unit_name})</span>
+  </div>`).join('');
+}
+
+function _kitImportChoose(idx, itemId, itemName) {
+  if (!window._kitImportMatched[idx]) return;
+  window._kitImportMatched[idx].chosen = { type:'item', id:itemId, name:itemName };
+  _kitImportRenderRows();
+}
+
+function _kitImportSetNew(idx) {
+  if (!window._kitImportMatched[idx]) return;
+  window._kitImportMatched[idx].chosen = { type:'new' };
+  _kitImportRenderRows();
+}
+
+function _kitImportRefreshConfirm() {
+  const matched = window._kitImportMatched || [];
+  const newCount   = matched.filter(m => m.chosen.type === 'new').length;
+  const matchCount = matched.filter(m => m.chosen.type === 'item').length;
+  const el = document.getElementById('kit-import-summary');
+  if (el) el.textContent = `${matchCount} item${matchCount!==1?'s':''} matched · ${newCount} new item${newCount!==1?'s':''} will be created`;
+}
+
+async function _kitImportConfirm() {
+  const matched = window._kitImportMatched || [];
+  const kitId   = window._kitImportKitId;
+  const btn = document.getElementById('kit-import-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
+
+  let added = 0, created = 0, errors = 0;
+  for (const m of matched) {
+    try {
+      let itemId = m.chosen.type === 'item' ? m.chosen.id : null;
+      if (m.chosen.type === 'new') {
+        // Create a new item from the CSV row
+        const newItem = await post('/api/items', {
+          name: m.row.name,
+          sku: m.row.sku || null,
+          barcode: m.row.barcode || null,
+          unit_name: m.row.unit_name || 'pcs',
+          unit_type: 'quantity',
+          quantity: 0,
+          min_quantity: 0,
+          supplier_links: [],
+        });
+        itemId = newItem.id;
+        created++;
+      }
+      if (itemId) {
+        await post('/api/kits/' + kitId + '/items', { item_id: itemId, quantity: m.row.quantity });
+        added++;
+      }
+    } catch(e) { errors++; }
+  }
+
+  closeModal();
+  toast(`Imported: ${added} component${added!==1?'s':''}${created?' ('+created+' new item'+(created!==1?'s':'')+' created)':''}${errors?' · '+errors+' error'+(errors!==1?'s':''):''}`);
+
+  // Refresh kit components modal
+  const k = await get('/api/kits/' + kitId);
+  const allItems = window._kitImportItems || await get('/api/items');
+  openKitComponents(kitId, k.name);
 }
 
 async function toggleAssetMqtt(assetId, exposed) {
@@ -2089,6 +3103,67 @@ function saveDashWidgets() {
 }
 function resetDashWidgets() { localStorage.removeItem(DASH_WIDGETS_KEY); closeModal(); renderDashboard(); }
 
+function applyBranding(cfg) {
+  if (!cfg) return;
+  // Sidebar logo
+  const logoDefault = document.getElementById('sidebar-logo-default');
+  const logoImg     = document.getElementById('sidebar-logo-img');
+  if (cfg.logo_url) {
+    if (logoDefault) logoDefault.style.display = 'none';
+    if (logoImg) { logoImg.src = cfg.logo_url; logoImg.style.display = 'block'; }
+  } else {
+    if (logoDefault) logoDefault.style.display = '';
+    if (logoImg) { logoImg.src = ''; logoImg.style.display = 'none'; }
+  }
+  // Favicon
+  const link = document.getElementById('favicon-link');
+  if (link) link.href = cfg.favicon_url || '';
+}
+
+async function _brUpload(input, urlFieldId, previewId, emptyId) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/settings/upload-asset', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + _authToken },
+      body: fd,
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({detail:'Upload failed'})); toast(e.detail||'Upload failed','error'); return; }
+    const { url } = await r.json();
+    const field = document.getElementById(urlFieldId);
+    if (field) field.value = url;
+    const preview = document.getElementById(previewId);
+    if (preview) { preview.src = url; preview.style.display = 'block'; }
+    const empty = document.getElementById(emptyId);
+    if (empty) empty.style.display = 'none';
+    toast('Image uploaded');
+  } catch(e) { toast(e.message||'Upload failed','error'); }
+  input.value = '';
+}
+
+function _brFaviconPreview(url) {
+  const img = document.getElementById('br-favicon-preview');
+  const empty = document.getElementById('br-favicon-empty');
+  if (img) { img.src = url; img.style.display = url ? 'block' : 'none'; }
+  if (empty) empty.style.display = url ? 'none' : 'block';
+}
+
+async function saveBrandingSettings(reset=false) {
+  const cfg = reset ? { logo_url: '', favicon_url: '' } : {
+    logo_url:    document.getElementById('br-logo')?.value.trim() || '',
+    favicon_url: document.getElementById('br-favicon')?.value.trim() || '',
+  };
+  try {
+    await post('/api/settings/branding', cfg);
+    applyBranding(cfg);
+    toast(reset ? 'Branding reset to defaults' : 'Branding saved');
+    renderSettings('branding');
+  } catch(e) { toast(e.message || 'Failed to save', 'error'); }
+}
+
 async function saveCompanySettings() {
   const cfg = {
     name:          document.getElementById('co-name')?.value.trim()||'',
@@ -2112,7 +3187,8 @@ async function saveCompanySettings() {
 let _gsTimer = null;
 
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  const _gsKey = (getShortcuts().globalSearch || 'k').toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && e.key === _gsKey) {
     e.preventDefault();
     openGlobalSearch();
   }
@@ -2293,7 +3369,7 @@ async function renderDashboard() {
     ${statGrid}
     ${valuedItems.length<allItems.length&&activeWidgets.some(w=>w.id==='inventory_value')?`<div style="font-size:11px;color:var(--text-3);margin-bottom:12px;text-align:right">Value covers ${valuedItems.length} of ${allItems.length} priced items</div>`:''}
     ${blockWidgets.map(w=>(WIDGET_RENDER[w.id]||(() =>''))()).join('')}
-    <div style="text-align:right;font-size:11px;color:var(--text-3)">v${APP_VERSION} &nbsp;·&nbsp; ${APP_BUILD}</div>
+    <div style="text-align:right;font-size:11px;color:var(--text-3)">${APP_VERSION} &nbsp;·&nbsp; ${APP_BUILD}</div>
   `);
 }
 function sc(icon, label, val, color, page='') {
@@ -2402,6 +3478,8 @@ function selectAllItems(checked, ids) {
 function clearBulkSelection() { selectedItems.clear(); renderItems(); }
 function updateBulkBar() {
   const bar = document.getElementById('bulk-action-bar');
+  const mergBtn = document.getElementById('bulk-merge-btn');
+  if (mergBtn) mergBtn.style.display = selectedItems.size >= 2 ? '' : 'none';
   const cnt = document.getElementById('bulk-count');
   if (!bar) return;
   bar.style.display = selectedItems.size > 0 ? 'flex' : 'none';
@@ -2764,6 +3842,7 @@ async function renderItems() {
       <button class="btn btn-secondary btn-sm" onclick="bulkChangeCategory()">🏷 Category</button>
       <button class="btn btn-secondary btn-sm" onclick="bulkMoveLocation()">📍 Location</button>
       <button class="btn btn-secondary btn-sm" onclick="bulkAdjustQty()">± Qty</button>
+      <button id="bulk-merge-btn" class="btn btn-secondary btn-sm" style="display:none" onclick="openBulkMergeModal()">⇄ Merge</button>
       <div style="position:relative">
         <button class="btn btn-secondary btn-sm" onclick="toggleBulkIntMenu()">📡 MQTT / HA ▾</button>
         <div id="bulk-int-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px;min-width:170px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.3)">
@@ -2865,7 +3944,10 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
       <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Stock &amp; Location</div>
 
       <div id="f-qty-simple-wrap" style="${hasPkg?'display:none;':''}margin-bottom:10px">
-        <label class="field-label">Quantity</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <label class="field-label" style="margin:0">Quantity</label>
+          <button type="button" class="btn btn-secondary btn-sm" style="font-size:13px;padding:2px 8px" title="Fill from scale" onclick="openFormScaleModal('f-qty')">⚖️</button>
+        </div>
         <input id="f-qty" class="input" type="number" step="any" value="${hasPkg?0:(v.quantity??0)}"/>
       </div>
 
@@ -2876,12 +3958,17 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
             <input id="f-pkg-sealed" class="input" type="number" min="0" step="1" value="${_sealedCount}" oninput="updatePkgTotal()"/>
           </div>
           <div>
-            <label class="field-label">Loose <span id="f-pkg-loose-unit" style="color:var(--text-3);font-size:10px">(${esc(v.unit_name||'units')})</span></label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <label class="field-label" style="margin:0">Loose <span id="f-pkg-loose-unit" style="color:var(--text-3);font-size:10px">(${esc(v.unit_name||'units')})</span></label>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size:13px;padding:2px 8px" title="Fill from scale" onclick="openFormScaleModal('f-pkg-loose')">⚖️</button>
+            </div>
             <input id="f-pkg-loose" class="input" type="number" min="0" step="any" value="${_looseQty}" oninput="updatePkgTotal()"/>
           </div>
         </div>
         <div id="f-pkg-total-preview" style="font-size:11px;color:var(--accent)"></div>
       </div>
+
+      <div id="fsm-panel" style="display:none;margin-bottom:10px"></div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
@@ -2927,10 +4014,15 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
         </div>
         <div style="grid-column:1/-1">
           <label class="field-label">Package behavior</label>
-          <select id="f-pkg-behavior" class="input">
+          <select id="f-pkg-behavior" class="input" onchange="document.getElementById('f-spool-ew-row').style.display=this.value==='spool'?'flex':'none'">
             <option value="bulk"  ${(v.package_behavior||'bulk')==='bulk' ?'selected':''}>Bulk &#8212; fungible (screws, resistors&#8230;)</option>
             <option value="spool" ${v.package_behavior==='spool'?'selected':''}>Spool &#8212; continuous (filament, wire&#8230;)</option>
           </select>
+        </div>
+        <div id="f-spool-ew-row" style="grid-column:1/-1;display:${v.package_behavior==='spool'?'flex':'none'};align-items:center;gap:8px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0;min-width:130px">Empty spool weight</label>
+          <input id="f-spool-empty-weight" type="number" step="any" min="0" class="input" style="width:100px" value="${v.spool_empty_weight??''}" placeholder="e.g. 250"/>
+          <span style="font-size:12px;color:var(--text-3)">g &nbsp;(hub tare for scale weighing)</span>
         </div>
       </div>
     </details>
@@ -3002,6 +4094,10 @@ function itemForm(v={}, cats=[], locs=[], materials=[]) {
         <div style="grid-column:1/-1">
           <label class="field-label">Notes</label>
           <textarea id="f-notes" class="input">${esc(v.notes||'')}</textarea>
+        </div>
+        <div>
+          <label class="field-label">Weight / unit <span style="font-size:11px;color:var(--text-3)">(for scale counting, e.g. g per screw)</span></label>
+          <input id="f-unit-weight" class="input" type="number" step="any" min="0" value="${v.unit_weight||''}" placeholder="0.5"/>
         </div>
         <div style="grid-column:1/-1">
           <label class="field-label">Photo</label>
@@ -3273,6 +4369,7 @@ async function submitAddItem() {
     package_size:parseFloat(document.getElementById('f-pkg-size').value)||null,
     package_unit:document.getElementById('f-pkg-unit').value.trim()||null,
     package_behavior:document.getElementById('f-pkg-behavior')?.value||'bulk',
+    spool_empty_weight:parseFloat(document.getElementById('f-spool-empty-weight')?.value)||null,
     material:      document.getElementById('f-material').value.trim()||null,
     color:         document.getElementById('f-color').value.trim()||null,
     manufacturer:  document.getElementById('f-manufacturer').value.trim()||null,
@@ -3282,6 +4379,7 @@ async function submitAddItem() {
     image_url:     document.getElementById('f-image-url').value.trim()||null,
     notes:         document.getElementById('f-notes').value.trim()||null,
     is_assembly:   document.getElementById('f-is-assembly')?.checked||false,
+    unit_weight:   parseFloat(document.getElementById('f-unit-weight')?.value)||null,
     supplier_links: supUrl ? [{ url:supUrl, price:supPrice }] : [],
   };
   // Resolve actual quantity from form inputs before posting
@@ -3322,6 +4420,8 @@ async function openItem(id) {
   ]);
   const _mqttCfg = _mqttStatus?.connected || false;
   const _haCfg   = _haStatus?.configured  || false;
+  let _scaleEnabled = false;
+  try { const _sc = await get('/api/scale/reading').catch(()=>null); _scaleEnabled = !!(_sc?.enabled); } catch(e){}
   const components = item.is_assembly ? await get('/api/items/'+id+'/components').catch(()=>[]) : [];
   const _locById = Object.fromEntries(locs.map(l=>[l.id,l]));
   function _locPath(l){const parts=[];let cur=l;while(cur){parts.unshift(cur.name);cur=cur.parent_id?_locById[cur.parent_id]:null;}return parts.join(' › ');}
@@ -3368,7 +4468,7 @@ async function openItem(id) {
           if (s.sealed) {
             return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"> <span style="font-size:13px;color:var(--text-3);min-width:24px">#${i+1}</span> <span class="badge badge-blue">Sealed</span> <span style="color:var(--text-2);font-size:13px;flex:1">${ps} ${item.unit_name}</span> <button class="btn btn-secondary btn-sm" onclick="spoolOpen(${item.id},${i})">Open</button> </div>`;
           } else {
-            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"> <span style="font-size:13px;color:var(--text-3);min-width:24px">#${i+1}</span> <span class="badge" style="background:#fb923c20;color:#fb923c">Open</span> <input type="number" step="any" min="0" max="${ps}" class="input" style="width:80px;padding:4px 8px" value="${s.remaining??ps}" id="spool-rem-${i}" oninput="spoolSetRem(${item.id},${i},this.value)"/> <span style="color:var(--text-3);font-size:12px">${item.unit_name} left</span> <button class="btn btn-danger btn-sm" onclick="spoolRemove(${item.id},${i})">×</button> </div>`;
+            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"> <span style="font-size:13px;color:var(--text-3);min-width:24px">#${i+1}</span> <span class="badge" style="background:#fb923c20;color:#fb923c">Open</span> <input type="number" step="any" min="0" max="${ps}" class="input" style="width:80px;padding:4px 8px" value="${s.remaining??ps}" id="spool-rem-${i}" oninput="spoolSetRem(${item.id},${i},this.value)"/> <span style="color:var(--text-3);font-size:12px">${item.unit_name} left</span> <button class="btn btn-danger btn-sm" onclick="spoolRemove(${item.id},${i})">×</button> ${_scaleEnabled?`<button class="btn btn-secondary btn-sm" title="Weigh spool" onclick="openSpoolScaleModal(${item.id},${i},${item.spool_empty_weight||0},'${esc(item.unit_name||'g')}',${item.package_size||1000})">⚖️</button>`:''} </div>`;
           }
         }).join('') : `<div style="color:var(--text-3);font-size:13px">No ${pkgLabel}s tracked yet.</div>`;
         const total = spools.reduce((s,p)=>s+(p.sealed?ps:(p.remaining??ps)),0);
@@ -3402,6 +4502,7 @@ async function openItem(id) {
       <input id="adj-amt" type="number" step="any" min="0" class="input" style="width:72px;text-align:center" placeholder="qty" oninput="toggleAdjSubmit(${item.id},${item.quantity})"/>
       <button class="btn btn-secondary btn-sm" id="adj-plus" onclick="inlineAdjDir(1,${item.id},${item.quantity})" style="font-size:18px;padding:0 14px;height:36px;line-height:1">+</button>
       <button id="adj-submit" class="btn btn-primary btn-sm" style="display:none" onclick="submitInlineAdj(${item.id},${item.quantity})">Apply</button>
+      ${_scaleEnabled ? `<button class="btn btn-secondary btn-sm" title="Weigh quantity" onclick="openScaleModal(${item.id},'${esc(item.name)}',${item.quantity},${item.unit_weight||0})" style="font-size:15px;padding:0 10px;height:36px">⚖️</button>` : ''}
     </div>
   </div>
 </div>
@@ -3412,6 +4513,7 @@ async function openItem(id) {
   <button class="btn btn-secondary btn-sm" onclick="openMoveModal(${item.id})">↔️ Move</button>
   <button class="btn btn-secondary btn-sm" onclick="printKanbanCard(${item.id})">🖨️ Label</button>
   <label class="btn btn-secondary btn-sm" style="cursor:pointer">📷 Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="uploadPhotoImmediate(${item.id}, this)"/></label>
+  <button class="btn btn-secondary btn-sm" onclick="openMergeModal(${item.id},'${esc(item.name)}')">⇄ Merge</button>
   <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="confirmDelete(${item.id},'${esc(item.name)}')">Delete</button>
 </div>
 ${(_mqttCfg||_haCfg) ? `<div style="display:flex;gap:16px;padding:8px 12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);margin-bottom:14px;font-size:12px;color:var(--text-2)">
@@ -3563,6 +4665,7 @@ async function submitEditItem(id) {
     image_url:     document.getElementById('f-image-url').value.trim()||null,
     notes:         document.getElementById('f-notes').value.trim()||null,
     is_assembly:   document.getElementById('f-is-assembly')?.checked||false,
+    unit_weight:   parseFloat(document.getElementById('f-unit-weight')?.value)||null,
   };
   // Build quantity + packages_json from sealed/loose or simple qty
   if (body.package_size) {
@@ -3805,7 +4908,7 @@ async function renderScan() {
     <div style="margin-bottom:20px"> <div class="page-title">Scan Barcode</div> <div class="page-sub">Look up any item instantly by scanning its barcode. Works with your phone camera or a USB/Bluetooth barcode gun.</div> </div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px"> <div class="card" style="padding:20px"> <div style="font-size:14px;font-weight:600;margin-bottom:12px">📷 Camera</div> <div id="scanner-box" style="background:var(--bg-base);border-radius:10px;overflow:hidden;
              min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--text-3);margin-bottom:12px">
           Camera preview here
-        </div> <div style="display:flex;gap:8px"> <button id="start-btn" class="btn btn-primary" style="flex:1" onclick="startCam()">Start Camera</button> <button id="stop-btn" class="btn btn-secondary" style="flex:1;display:none" onclick="stopCam()">Stop</button> </div> <div id="cam-result" style="margin-top:10px;font-size:13px;color:var(--text-2)"></div> </div> <div class="card" style="padding:20px"> <div style="font-size:14px;font-weight:600;margin-bottom:8px">⌨️ USB / Bluetooth Scanner</div> <p style="font-size:13px;color:var(--text-2);margin-bottom:10px">Click the field below and scan with your barcode gun, or type manually.</p> <input id="manual-bc" class="input" style="font-family:monospace;font-size:18px;letter-spacing:2px;margin-bottom:10px"
+        </div> <div style="display:flex;gap:8px;margin-bottom:8px"> <button id="start-btn" class="btn btn-primary" style="flex:1" onclick="startCam()">Start Camera</button> <button id="stop-btn" class="btn btn-secondary" style="flex:1;display:none" onclick="stopCam()">Stop</button> </div> <div style="background:var(--bg-hover);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-3);margin-bottom:8px">📷 Live camera requires HTTPS. If camera fails, use the photo option below.</div> <label class="btn btn-secondary" style="width:100%;justify-content:center;cursor:pointer;box-sizing:border-box">📁 Scan from Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromPhoto(this)"/></label> <div id="cam-result" style="margin-top:10px;font-size:13px;color:var(--text-2)"></div> </div> <div class="card" style="padding:20px"> <div style="font-size:14px;font-weight:600;margin-bottom:8px">⌨️ USB / Bluetooth Scanner</div> <p style="font-size:13px;color:var(--text-2);margin-bottom:10px">Click the field below and scan with your barcode gun, or type manually.</p> <input id="manual-bc" class="input" style="font-family:monospace;font-size:18px;letter-spacing:2px;margin-bottom:10px"
           placeholder="Focus here then scan…" onkeydown="if(event.key==='Enter')doManualScan()"/> <button class="btn btn-primary" style="width:100%" onclick="doManualScan()">Look Up</button> <div id="manual-result" style="margin-top:12px"></div> </div> </div>
   `);
   setTimeout(()=>document.getElementById('manual-bc')?.focus(), 100);
@@ -3823,7 +4926,7 @@ async function startCam() {
       ()=>{}
     );
   } catch(e) {
-    document.getElementById('scanner-box').innerHTML=`<p style="color:var(--danger);font-size:13px;padding:16px">Camera error: ${e.message}</p>`;
+    document.getElementById('scanner-box').innerHTML=`<p style="color:var(--danger);font-size:13px;padding:16px">Camera error: ${e?.message||String(e)||'Could not access camera'}</p>`;
     document.getElementById('start-btn').style.display='';
     document.getElementById('stop-btn').style.display='none';
   }
@@ -3837,6 +4940,22 @@ function stopCam() {
     document.getElementById('scanner-box').innerHTML='<div style="color:var(--text-3);padding:40px">Camera stopped</div>';
   });
 }
+async function scanFromPhoto(input) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  const el = document.getElementById('cam-result');
+  if (el) el.innerHTML = '<div class="spinner" style="display:inline-block"></div> Reading barcode…';
+  try {
+    const qr = new Html5Qrcode('scanner-box');
+    const barcode = await qr.scanFile(file, false);
+    if (el) el.textContent = 'Scanned: ' + barcode + ' — looking up…';
+    await handleScan(barcode, 'cam-result');
+  } catch(e) {
+    if (el) el.innerHTML = '<span style="color:var(--danger)">No barcode found in image. Try a clearer photo.</span>';
+  }
+}
+
 async function doManualScan() {
   const bc = document.getElementById('manual-bc').value.trim();
   if (bc) await handleScan(bc,'manual-result');
@@ -4177,27 +5296,130 @@ async function renderLocations() {
     }).join('');
   }
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div class="page-title">Locations <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${locs.length})</span></div><div class="page-sub">Organize where things live — shelves, bins, drawers, and containers. Click any location name to see what's stored there.</div><button class="btn btn-primary" onclick="openAddLoc()">＋ Add Location</button></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div><div class="page-title">Locations <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${locs.length})</span></div><div class="page-sub">Organize where things live — shelves, bins, drawers, and containers. Click any location name to see what's stored there.</div></div><button class="btn btn-primary" onclick="openAddLoc()">＋ Add Location</button></div>
     <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Actions</th></tr></thead><tbody>
       ${!locs.length?'<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:40px">No locations yet.</td></tr>':locRows(roots)}
     </tbody></table></div>
   `);
 }
 function locForm(v={},allLocs=[],excludeId=null){
-  const types=['bin','shelf','drawer','desk','shed','cabinet','rack','tray','box','container','other'];
+  const _builtinTypes=['bin','shelf','drawer','desk','shed','cabinet','rack','tray','box','container','other'];
+  const _customTypes=JSON.parse(localStorage.getItem('erp-loc-types')||'[]');
+  const types=[..._builtinTypes,..._customTypes.filter(t=>!_builtinTypes.includes(t))];
   const parentOpts=allLocs.filter(l=>l.id!==excludeId).map(l=>`<option value="${l.id}" ${v.parent_id===l.id?'selected':''}>${esc(l.name)}</option>`).join('');
-  return `<div style="display:grid;gap:12px"><div><label class="field-label">Name *</label><input id="lf-name" class="input" value="${esc(v.name||'')}" placeholder="Shed Bin A1"/></div><div><label class="field-label">Type</label><input id="lf-type" class="input" list="loc-type-list" value="${esc(v.location_type||'bin')}"/><datalist id="loc-type-list">${types.map(t=>`<option value="${t}">`).join('')}</datalist></div><div><label class="field-label">Parent Location</label><select id="lf-parent" class="input"><option value="">— none —</option>${parentOpts}</select></div><div><label class="field-label">Description</label><input id="lf-desc" class="input" value="${esc(v.description||'')}" placeholder="Near the door…"/></div></div>`;
+  const curType=v.location_type||'bin';
+  const typeOpts=types.map(t=>`<option value="${t}" ${t===curType?'selected':''}>${t}${_builtinTypes.includes(t)?'':' ✕'}</option>`).join('');
+  return `<div style="display:grid;gap:12px">
+    <div><label class="field-label">Name *</label><input id="lf-name" class="input" value="${esc(v.name||'')}" placeholder="Shed Bin A1"/></div>
+    <div>
+      <label class="field-label">Type</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="lf-type" class="input" style="flex:1" onchange="_locTypeSelectChange(this.value)">${typeOpts}</select>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="_locTypeToggleAdd()" title="Add custom type">＋</button>
+      </div>
+      <div id="lf-type-add-row" style="display:none;margin-top:6px;display:none">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="lf-new-type" class="input" style="flex:1;padding:6px 10px;font-size:13px" placeholder="New type name…" onkeydown="if(event.key==='Enter')_locTypeAdd()"/>
+          <button type="button" class="btn btn-primary btn-sm" onclick="_locTypeAdd()">Add</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="_locTypeToggleAdd()">✕</button>
+        </div>
+      </div>
+      <div id="lf-type-custom-list" style="margin-top:6px"></div>
+    </div>
+    <div><label class="field-label">Parent Location</label><select id="lf-parent" class="input"><option value="">— none —</option>${parentOpts}</select></div>
+    <div><label class="field-label">Description</label><input id="lf-desc" class="input" value="${esc(v.description||'')}" placeholder="Near the door…"/></div>
+  </div>`;
 }
-async function openAddLoc(){const locs=await get('/api/locations');showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Add Location</div>${locForm({},locs,null)}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitAddLoc()">Add</button></div>`);}
-async function openEditLoc(id){const[l,locs]=await Promise.all([get('/api/locations/'+id),get('/api/locations')]);showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Edit Location</div>${locForm(l,locs,id)}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitEditLoc(${id})">Save</button></div>`);}
+
+function _locTypeToggleAdd() {
+  const row = document.getElementById('lf-type-add-row');
+  if (!row) return;
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'flex';
+  row.style.flexDirection = 'column';
+  if (!visible) document.getElementById('lf-new-type')?.focus();
+}
+
+function _locTypeAdd() {
+  const input = document.getElementById('lf-new-type');
+  const t = input?.value.trim().toLowerCase();
+  if (!t) { toast('Enter a type name','warn'); return; }
+  const builtin = ['bin','shelf','drawer','desk','shed','cabinet','rack','tray','box','container','other'];
+  const custom = JSON.parse(localStorage.getItem('erp-loc-types')||'[]');
+  if (!builtin.includes(t) && !custom.includes(t)) {
+    custom.push(t);
+    localStorage.setItem('erp-loc-types', JSON.stringify(custom));
+  }
+  // Add option to select and select it
+  const sel = document.getElementById('lf-type');
+  if (sel) {
+    const existing = [...sel.options].find(o => o.value === t);
+    if (!existing) {
+      const opt = document.createElement('option');
+      opt.value = t; opt.text = t + ' ✕';
+      sel.appendChild(opt);
+    }
+    sel.value = t;
+  }
+  if (input) input.value = '';
+  _locTypeToggleAdd();
+  _locTypeRenderCustomList();
+  toast('Type "' + t + '" added');
+}
+
+function _locTypeSelectChange(val) {
+  // If user selects a custom type that ends with ✕, that's fine — value is the type
+}
+
+function _locTypeRenderCustomList() {
+  const el = document.getElementById('lf-type-custom-list');
+  if (!el) return;
+  const custom = JSON.parse(localStorage.getItem('erp-loc-types')||'[]');
+  if (!custom.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div style="font-size:11px;color:var(--text-3);margin-bottom:4px">Custom types:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      ${custom.map(t => `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-hover);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:11px;color:var(--text-2)">
+        ${esc(t)}
+        <button type="button" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:12px;padding:0;line-height:1" onclick="_locTypeDelete('${t}')" title="Delete type">✕</button>
+      </span>`).join('')}
+    </div>`;
+}
+
+function _locTypeDelete(t) {
+  const custom = JSON.parse(localStorage.getItem('erp-loc-types')||'[]').filter(x => x !== t);
+  localStorage.setItem('erp-loc-types', JSON.stringify(custom));
+  const sel = document.getElementById('lf-type');
+  if (sel) {
+    const opt = [...sel.options].find(o => o.value === t);
+    if (opt) {
+      if (sel.value === t) sel.value = 'bin';
+      sel.removeChild(opt);
+    }
+  }
+  _locTypeRenderCustomList();
+  toast('Type "' + t + '" removed');
+}
+async function openAddLoc(){const locs=await get('/api/locations');showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Add Location</div>${locForm({},locs,null)}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitAddLoc()">Add</button></div>`);setTimeout(_locTypeRenderCustomList,0);}
+async function openEditLoc(id){const[l,locs]=await Promise.all([get('/api/locations/'+id),get('/api/locations')]);showModal(`<div style="font-size:18px;font-weight:700;margin-bottom:16px">Edit Location</div>${locForm(l,locs,id)}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitEditLoc(${id})">Save</button></div>`);setTimeout(_locTypeRenderCustomList,0);}
+function _saveLocType(t){
+  if(!t)return;
+  const builtin=['bin','shelf','drawer','desk','shed','cabinet','rack','tray','box','container','other'];
+  if(builtin.includes(t))return;
+  const custom=JSON.parse(localStorage.getItem('erp-loc-types')||'[]');
+  if(!custom.includes(t)){custom.push(t);localStorage.setItem('erp-loc-types',JSON.stringify(custom));}
+}
 async function submitAddLoc(){
   const n=document.getElementById('lf-name').value.trim();if(!n){toast('Name required','error');return;}
   const p=document.getElementById('lf-parent').value;
-  try{await post('/api/locations',{name:n,location_type:document.getElementById('lf-type').value,description:document.getElementById('lf-desc').value.trim()||null,parent_id:p?parseInt(p):null});closeModal();toast('Location added!');renderLocations();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}
+  const t=document.getElementById('lf-type').value.trim()||'bin';
+  _saveLocType(t);
+  try{await post('/api/locations',{name:n,location_type:t,description:document.getElementById('lf-desc').value.trim()||null,parent_id:p?parseInt(p):null});closeModal();toast('Location added!');renderLocations();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}
 }
 async function submitEditLoc(id){
   const p=document.getElementById('lf-parent').value;
-  try{await patch('/api/locations/'+id,{name:document.getElementById('lf-name').value.trim(),location_type:document.getElementById('lf-type').value,description:document.getElementById('lf-desc').value.trim()||null,parent_id:p?parseInt(p):null});closeModal();toast('Saved!');renderLocations();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}
+  const t=document.getElementById('lf-type').value.trim()||'bin';
+  _saveLocType(t);
+  try{await patch('/api/locations/'+id,{name:document.getElementById('lf-name').value.trim(),location_type:t,description:document.getElementById('lf-desc').value.trim()||null,parent_id:p?parseInt(p):null});closeModal();toast('Saved!');renderLocations();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}
 }
 async function deleteLoc(id){if(!confirm('Delete this location?'))return;try{await del('/api/locations/'+id);toast('Deleted.');renderLocations();}catch(e){toast(e.message||String(e)||'Unexpected error','error');}}
 let _browseLocItems = [], _browseLocName = '';
@@ -4273,7 +5495,7 @@ async function renderMaterials(){
   loading();
   const mats=await get('/api/materials');
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div class="page-title">Materials <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${mats.length})</span></div><div class="page-sub">Define material types like PLA, ABS, or aluminum. Materials link to items for quick grouping and filtering on the Items page.</div><button class="btn btn-primary" onclick="openAddMat()">＋ Add Material</button></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div><div class="page-title">Materials <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${mats.length})</span></div><div class="page-sub">Define material types like PLA, ABS, or aluminum. Materials link to items for quick grouping and filtering on the Items page.</div></div><button class="btn btn-primary" onclick="openAddMat()">＋ Add Material</button></div>
     <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Color</th><th>Description</th><th>Notes</th><th>Actions</th></tr></thead><tbody>
       ${!mats.length?`<tr><td colspan="5" style="text-align:center;padding:30px"><div style="color:var(--text-3)">No materials yet.</div></td></tr>`:''}
       ${mats.map(m=>`<tr><td style="font-weight:500"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:50%;background:${m.color};display:inline-block;flex-shrink:0"></span>${esc(m.name)}</div></td><td style="font-size:12px;color:var(--text-2)">${esc(m.color)}</td><td style="color:var(--text-2);font-size:13px">${esc(m.description||'')}</td><td style="color:var(--text-2);font-size:13px;max-width:200px">${m.notes?`<span title="${esc(m.notes)}">${esc(m.notes.length>60?m.notes.slice(0,60)+'…':m.notes)}</span>`:''}</td><td style="white-space:nowrap"><button class="btn btn-secondary btn-sm" onclick="openEditMat(${m.id})">Edit</button> <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteMat(${m.id})">Del</button></td></tr>`).join('')}
@@ -4291,7 +5513,7 @@ async function renderCategories(){
   loading();
   const cats=await get('/api/categories');
   setMain(`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div class="page-title">Categories <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${cats.length})</span></div><div class="page-sub">Group your items by type for faster browsing and filtering. Click any category card to jump straight to its items.</div><button class="btn btn-primary" onclick="openAddCat()">＋ Add Category</button></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px"><div><div class="page-title">Categories <span style="font-size:15px;font-weight:400;color:var(--text-2)">(${cats.length})</span></div><div class="page-sub">Group your items by type for faster browsing and filtering. Click any category card to jump straight to its items.</div></div><button class="btn btn-primary" onclick="openAddCat()">＋ Add Category</button></div>
     <div id="cats-grid">
       ${(()=>{
         if (!cats.length) return '<p style="color:var(--text-3)">No categories yet.</p>';
@@ -4810,7 +6032,13 @@ async function openKitComponents(kitId, kitName) {
   const k = await get('/api/kits/'+kitId);
   const itemOpts = allItems.filter(i=>!i.is_assembly).map(i=>`<option value="${i.id}">${esc(i.name)} (${i.unit_name})</option>`).join('');
   showModal(`
-    <div style="font-size:18px;font-weight:700;margin-bottom:4px">📋 Kit Components</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:18px;font-weight:700">📋 Kit Components</div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-secondary btn-sm" onclick="kitDownloadExampleCSV()" title="Download example CSV">⬇ Example</button>
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer" title="Import components from CSV">⬆ CSV<input type="file" accept=".csv" style="display:none" onchange="kitImportCSV(this,${kitId})"/></label>
+      </div>
+    </div>
     <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">${esc(kitName)}</div>
     <div id="kit-comp-list" style="margin-bottom:16px"></div>
     <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px">
@@ -5388,6 +6616,8 @@ async function submitChangePassword(forced=false) {
 }
 async function bootApp() {
   updateSidebarHotkeys();
+  // Apply saved branding (logo + favicon)
+  get('/api/settings/branding').then(r => applyBranding(r?.value || {})).catch(()=>{});
   // Restore page from URL hash on load/refresh, replace so there's no blank entry
   const hashPage = location.hash.replace('#', '') || 'dashboard';
   if (_currentUser) {

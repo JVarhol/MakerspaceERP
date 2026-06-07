@@ -21,6 +21,12 @@ _connected = False
 _status_msg = "Not configured"
 _lock = threading.Lock()
 
+# Scale
+_scale_reading: Optional[float] = None
+_scale_topic: str = ""        # topic being listened to (either mode)
+_scale_mode: str = ""         # 'subscribe' | 'ha_entity'
+_scale_unit: str = "g"
+
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -32,6 +38,98 @@ def get_status() -> dict:
         "port":      _config.get("port", 1883),
         "base_topic":_config.get("base_topic", "makerspace"),
     }
+
+
+def get_scale_reading() -> Optional[float]:
+    """Return the most recent weight reading from the configured scale topic."""
+    return _scale_reading
+
+
+def configure_scale(mode: str = "ha_entity", topic: str = "", unit: str = "g") -> None:
+    """Subscribe to the appropriate scale topic based on mode.
+
+    mode='subscribe'  — ERP listens to a user-specified topic (scale publishes there).
+    mode='ha_entity'  — ERP creates a writable number entity in HA; HA writes to
+                        {base}/scale/set, ERP publishes state to {base}/scale/state.
+    """
+    global _scale_topic, _scale_mode, _scale_unit
+    _scale_mode = mode
+    _scale_unit = unit
+    base = _config.get("base_topic", "makerspace")
+
+    if mode == "ha_entity":
+        _scale_topic = f"{base}/scale/set"
+    else:  # subscribe
+        _scale_topic = topic
+
+    if _connected and _client and _scale_topic:
+        try:
+            _client.subscribe(_scale_topic)
+            log.info(f"Scale subscribed ({mode}): {_scale_topic}")
+            if mode == "ha_entity":
+                publish_scale_discovery()
+        except Exception as e:
+            log.warning(f"Scale subscribe failed: {e}")
+
+
+def publish_scale_discovery() -> bool:
+    """Publish HA auto-discovery for the scale.
+
+    ha_entity mode  → writable number entity (HA can set the value).
+    subscribe mode  → read-only sensor entity (HA mirrors the scale value).
+    Returns True on success.
+    """
+    if not _connected or not _client:
+        return False
+    base = _config.get("base_topic", "makerspace")
+    unit = _scale_unit or "g"
+
+    if _scale_mode == "ha_entity":
+        config = {
+            "name":          "Makerspace Scale",
+            "unique_id":     "makerspace_scale_weight",
+            "state_topic":   f"{base}/scale/state",
+            "command_topic": f"{base}/scale/set",
+            "unit_of_measurement": unit,
+            "min":    0,
+            "max":    99999,
+            "step":   0.1,
+            "mode":   "box",
+            "device": {
+                "identifiers": ["makerspace_erp"],
+                "name":        "Makerspace ERP",
+                "model":       "Inventory Manager",
+                "manufacturer":"HomeERP",
+            },
+        }
+        discovery_topic = "homeassistant/number/makerspace_scale/config"
+    else:
+        # subscribe mode: sensor that mirrors the external scale
+        config = {
+            "name":          "Makerspace Scale",
+            "unique_id":     "makerspace_scale_weight",
+            "state_topic":   _scale_topic,
+            "unit_of_measurement": unit,
+            "device_class":  "weight",
+            "state_class":   "measurement",
+            "device": {
+                "identifiers": ["makerspace_erp"],
+                "name":        "Makerspace ERP",
+                "model":       "Inventory Manager",
+                "manufacturer":"HomeERP",
+            },
+        }
+        discovery_topic = "homeassistant/sensor/makerspace_scale/config"
+
+    try:
+        _client.publish(discovery_topic, json.dumps(config), retain=True)
+        if _scale_mode == "ha_entity" and _scale_reading is not None:
+            _client.publish(f"{base}/scale/state", str(_scale_reading), retain=True)
+        log.info(f"Scale HA discovery published ({_scale_mode})")
+        return True
+    except Exception as e:
+        log.warning(f"Scale discovery failed: {e}")
+        return False
 
 
 def connect(cfg: dict, db=None) -> dict:
@@ -257,6 +355,13 @@ def _subscribe_all(client, db=None):
     client.subscribe(f"{base}/assets/+/set")
     log.info(f"Subscribed to {base}/assets/+/set")
 
+    # Subscribe to scale topic if configured
+    if _scale_topic:
+        client.subscribe(_scale_topic)
+        log.info(f"Scale topic subscribed ({_scale_mode}): {_scale_topic}")
+        if _scale_mode == 'ha_entity':
+            publish_scale_discovery()
+
     # Publish current state for all exposed items
     if db is not None:
         try:
@@ -280,8 +385,20 @@ def _subscribe_all(client, db=None):
 
 def _handle_message(msg):
     """Handle incoming set command for items and assets."""
+    global _scale_reading
     import re
-    base = _config.get("base_topic", "makerspace")
+    # Check for scale reading
+    if _scale_topic and msg.topic == _scale_topic:
+        try:
+            _scale_reading = float(msg.payload.decode().strip())
+            log.debug(f"Scale reading: {_scale_reading}")
+            # Echo back to state topic in ha_entity mode
+            if _scale_mode == 'ha_entity' and _client:
+                base_t = _config.get('base_topic', 'makerspace')
+                _client.publish(f"{base_t}/scale/state", str(_scale_reading), retain=True)
+        except Exception:
+            log.warning(f"Invalid scale payload: {msg.payload}")
+        return
     # Check if it's an asset command
     ma = re.match(rf"^{re.escape(base)}/assets/(\d+)/set$", msg.topic)
     if ma:
@@ -367,4 +484,4 @@ def _handle_asset_message(asset_id: int, payload: str):
         finally:
             db.close()
     except Exception as e:
-        log.error(f"MQTT asset message handler error: {e}")
+        log.error(f"MQTT asset handler error: {e}")

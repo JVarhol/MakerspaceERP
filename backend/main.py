@@ -23,6 +23,7 @@ from .routers import category_fields
 from .routers import kits
 from .routers import settings as settings_router
 from .routers import auth_router, users_router
+from .routers import scale_router
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -64,6 +65,19 @@ async def lifespan(app_):
                     log.info("HA auto-configured")
                 except Exception as exc:
                     log.warning(f"HA auto-configure failed: {exc}")
+
+            scale_cfg = _get_cfg("scale")
+            if scale_cfg and scale_cfg.get("enabled"):
+                log.info("Auto-configuring scale...")
+                try:
+                    mqtt_service.configure_scale(
+                        mode  = scale_cfg.get("mode", "ha_entity"),
+                        topic = scale_cfg.get("topic", ""),
+                        unit  = scale_cfg.get("unit", "g"),
+                    )
+                    log.info("Scale auto-configured")
+                except Exception as exc:
+                    log.warning(f"Scale auto-configure failed: {exc}")
         finally:
             db.close()
     except Exception as exc:
@@ -92,6 +106,7 @@ app.include_router(kits.router)
 app.include_router(settings_router.router)
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
+app.include_router(scale_router.router)
 
 # ── Materials CRUD ────────────────────────────────────────────────────────────
 @app.get("/api/materials", response_model=List[MaterialOut], tags=["materials"])

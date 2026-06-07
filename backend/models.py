@@ -9,7 +9,7 @@ from .database import Base
 class Material(Base):
     __tablename__ = "materials"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String, nullable=False, unique=True)
     description = Column(Text, nullable=True)
     color = Column(String, default="#6366f1")
@@ -19,13 +19,13 @@ class Material(Base):
 class Category(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String, nullable=False, unique=True)
     parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     color = Column(String, default="#6366f1")
     icon = Column(String, default="📦")
     default_unit_name = Column(String, nullable=True)
-    default_package_behavior = Column(String, nullable=True)  # bulk | spool
+    default_package_behavior = Column(String, nullable=True)
 
     parent = relationship("Category", remote_side=[id], backref="children")
     items = relationship("Item", back_populates="category")
@@ -34,11 +34,11 @@ class Category(Base):
 class Location(Base):
     __tablename__ = "locations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     parent_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
-    location_type = Column(String, default="bin")  # shed, desk, bin, shelf, drawer, other
+    location_type = Column(String, default="bin")
 
     parent = relationship("Location", remote_side=[id], backref="children")
     item_locations = relationship("ItemLocation", back_populates="location")
@@ -47,28 +47,30 @@ class Location(Base):
 class Item(Base):
     __tablename__ = "items"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String, nullable=False, index=True)
     description = Column(Text, nullable=True)
     barcode = Column(String, nullable=True, unique=True, index=True)
     sku = Column(String, nullable=True, index=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
-    unit_type = Column(String, default="quantity")  # quantity | weight | volume
-    unit_name = Column(String, default="pcs")       # pcs, g, kg, ml, L, oz, ft, m …
+    unit_type = Column(String, default="quantity")
+    unit_name = Column(String, default="pcs")
     quantity = Column(Float, default=0.0)
-    min_quantity = Column(Float, default=0.0)       # low-stock threshold
-    package_size = Column(Float, nullable=True)     # e.g. 1000 (g per spool)
-    package_unit = Column(String, nullable=True)    # e.g. "spool", "roll", "bag"
-    material = Column(String, nullable=True)        # e.g. PLA, ABS, M2, etc.
-    color = Column(String, nullable=True)           # e.g. Black, Red, Natural
+    min_quantity = Column(Float, default=0.0)
+    package_size = Column(Float, nullable=True)
+    package_unit = Column(String, nullable=True)
+    material = Column(String, nullable=True)
+    color = Column(String, nullable=True)
     manufacturer = Column(String, nullable=True)
-    price = Column(Float, nullable=True)            # unit cost price
-    date_purchased = Column(String, nullable=True)  # ISO date string
-    packages_json = Column(Text, nullable=True)     # JSON array of spool states
-    package_behavior = Column(String, default='bulk')  # bulk | spool
-    expiry_date = Column(String, nullable=True)     # ISO date string
+    price = Column(Float, nullable=True)
+    date_purchased = Column(String, nullable=True)
+    packages_json = Column(Text, nullable=True)
+    package_behavior = Column(String, default='bulk')
+    expiry_date = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
+    unit_weight   = Column(Float, nullable=True)      # grams per unit (for scale weighing)
+    spool_empty_weight = Column(Float, nullable=True) # grams, empty spool hub tare for scale weighing
     is_assembly   = Column(Boolean, default=False)
     mqtt_exposed  = Column(Boolean, default=False)
     ha_exposed    = Column(Boolean, default=False)
@@ -84,13 +86,13 @@ class Item(Base):
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(String, default="planning")  # planning | active | complete | archived
+    status = Column(String, default="planning")
     labor_hours = Column(Float, default=0.0)
-    labor_rate  = Column(Float, default=0.0)   # cost per hour
-    markup_pct  = Column(Float, default=0.0)   # markup percentage (e.g. 15 = 15%)
+    labor_rate  = Column(Float, default=0.0)
+    markup_pct  = Column(Float, default=0.0)
     created_at = Column(DateTime, server_default=func.now())
 
     items = relationship("ProjectItem", back_populates="project", cascade="all, delete-orphan")
@@ -100,7 +102,7 @@ class ProjectItem(Base):
     __tablename__ = "project_items"
     __table_args__ = (UniqueConstraint("project_id", "item_id"),)
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     quantity_needed = Column(Float, default=1.0)
@@ -114,7 +116,7 @@ class ItemLocation(Base):
     __tablename__ = "item_locations"
     __table_args__ = (UniqueConstraint("item_id", "location_id"),)
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
     quantity = Column(Float, default=0.0)
@@ -126,10 +128,10 @@ class ItemLocation(Base):
 class SupplierLink(Base):
     __tablename__ = "supplier_links"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     url = Column(String, nullable=False)
-    supplier_name = Column(String, nullable=True)   # Amazon, AliExpress, DigiKey …
+    supplier_name = Column(String, nullable=True)
     price = Column(Float, nullable=True)
     currency = Column(String, default="USD")
     notes = Column(Text, nullable=True)
@@ -141,16 +143,16 @@ class SupplierLink(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
-    transaction_type = Column(String, nullable=False)  # add | remove | adjustment | move
+    transaction_type = Column(String, nullable=False)
     quantity_change = Column(Float, nullable=False)
     quantity_before = Column(Float, nullable=False)
     quantity_after = Column(Float, nullable=False)
     from_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     to_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     notes = Column(Text, nullable=True)
-    created_by = Column(String, nullable=True)  # username, 'MQTT', 'System', etc.
+    created_by = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     item = relationship("Item", back_populates="transactions")
@@ -161,16 +163,15 @@ class Transaction(Base):
 class PurchaseOrder(Base):
     __tablename__ = "purchase_orders"
 
-    id = Column(Integer, primary_key=True, index=True)
-    po_number = Column(String, nullable=True)        # e.g. PO-0001
-    # Legacy single-item columns (kept for migration compat)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    po_number = Column(String, nullable=True)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=True)
     quantity_ordered = Column(Float, nullable=True)
     quantity_received = Column(Float, default=0.0)
     supplier_name = Column(String, nullable=True)
-    expected_date = Column(String, nullable=True)   # ISO date string
+    expected_date = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
-    status = Column(String, default="pending")       # pending | partial | received | cancelled
+    status = Column(String, default="pending")
     created_at = Column(DateTime, server_default=func.now())
 
     item = relationship("Item")
@@ -181,13 +182,13 @@ class PurchaseOrder(Base):
 class PurchaseOrderItem(Base):
     __tablename__ = "po_items"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     po_id = Column(Integer, ForeignKey("purchase_orders.id", ondelete="CASCADE"), nullable=False)
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     quantity_ordered = Column(Float, nullable=False)
     quantity_received = Column(Float, default=0.0)
     notes = Column(Text, nullable=True)
-    status = Column(String, default="pending")       # pending | partial | received | cancelled
+    status = Column(String, default="pending")
     created_at = Column(DateTime, server_default=func.now())
 
     po = relationship("PurchaseOrder", back_populates="line_items")
@@ -197,13 +198,13 @@ class PurchaseOrderItem(Base):
 class Asset(Base):
     __tablename__ = "assets"
 
-    id            = Column(Integer, primary_key=True, index=True)
+    id            = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name          = Column(String, nullable=False, index=True)
     description   = Column(Text, nullable=True)
     asset_tag     = Column(String, nullable=True, unique=True, index=True)
     category      = Column(String, nullable=True)
     location_id   = Column(Integer, ForeignKey("locations.id"), nullable=True)
-    status        = Column(String, default="available")  # available | checked_out | maintenance | retired
+    status        = Column(String, default="available")
     serial_number = Column(String, nullable=True)
     manufacturer  = Column(String, nullable=True)
     model         = Column(String, nullable=True)
@@ -222,7 +223,7 @@ class Asset(Base):
 class AssetCheckout(Base):
     __tablename__ = "asset_checkouts"
 
-    id              = Column(Integer, primary_key=True, index=True)
+    id              = Column(Integer, primary_key=True, autoincrement=True, index=True)
     asset_id        = Column(Integer, ForeignKey("assets.id"), nullable=False)
     checked_out_by  = Column(String, nullable=False)
     checked_out_at  = Column(DateTime, server_default=func.now())
@@ -236,11 +237,11 @@ class AssetCheckout(Base):
 class CategoryField(Base):
     __tablename__ = "category_fields"
 
-    id            = Column(Integer, primary_key=True, index=True)
+    id            = Column(Integer, primary_key=True, autoincrement=True, index=True)
     category_id   = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     field_name    = Column(String, nullable=False)
-    field_type    = Column(String, default="text")   # text | number | select | checkbox | date
-    field_options = Column(Text, nullable=True)      # JSON array string for select type
+    field_type    = Column(String, default="text")
+    field_options = Column(Text, nullable=True)
     required      = Column(Boolean, default=False)
     sort_order    = Column(Integer, default=0)
 
@@ -252,7 +253,7 @@ class ItemFieldValue(Base):
     __tablename__ = "item_field_values"
     __table_args__ = (UniqueConstraint("item_id", "field_id"),)
 
-    id       = Column(Integer, primary_key=True, index=True)
+    id       = Column(Integer, primary_key=True, autoincrement=True, index=True)
     item_id  = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
     field_id = Column(Integer, ForeignKey("category_fields.id", ondelete="CASCADE"), nullable=False)
     value    = Column(Text, nullable=True)
@@ -264,7 +265,7 @@ class ItemFieldValue(Base):
 class Kit(Base):
     __tablename__ = "kits"
 
-    id          = Column(Integer, primary_key=True, index=True)
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name        = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     notes       = Column(Text, nullable=True)
@@ -279,7 +280,7 @@ class KitItem(Base):
     __tablename__ = "kit_items"
     __table_args__ = (UniqueConstraint("kit_id", "item_id"),)
 
-    id       = Column(Integer, primary_key=True, index=True)
+    id       = Column(Integer, primary_key=True, autoincrement=True, index=True)
     kit_id   = Column(Integer, ForeignKey("kits.id", ondelete="CASCADE"), nullable=False)
     item_id  = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
     quantity = Column(Float, default=1.0)
@@ -292,9 +293,9 @@ class AssemblyComponent(Base):
     __tablename__ = "assembly_components"
     __table_args__ = (UniqueConstraint("assembly_id", "component_id"),)
 
-    id               = Column(Integer, primary_key=True, index=True)
-    assembly_id      = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
-    component_id     = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
+    id                = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    assembly_id       = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
+    component_id      = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
     quantity_per_unit = Column(Float, default=1.0)
 
     assembly  = relationship("Item", foreign_keys=[assembly_id])
@@ -304,23 +305,23 @@ class AssemblyComponent(Base):
 class AppSetting(Base):
     __tablename__ = "app_settings"
 
-    id    = Column(Integer, primary_key=True, index=True)
+    id    = Column(Integer, primary_key=True, autoincrement=True, index=True)
     key   = Column(String, unique=True, nullable=False, index=True)
-    value = Column(Text, nullable=True)   # JSON string
+    value = Column(Text, nullable=True)
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id            = Column(Integer, primary_key=True, index=True)
-    username      = Column(String, unique=True, nullable=False, index=True)
-    full_name     = Column(String, nullable=True)
-    email         = Column(String, unique=True, nullable=True, index=True)
-    password_hash = Column(String, nullable=False)
-    role          = Column(String, default="user")        # admin | user
-    permissions   = Column(Text, nullable=True)           # JSON: per-section permissions
-    is_active     = Column(Boolean, default=True)
+    id              = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    username        = Column(String, unique=True, nullable=False, index=True)
+    full_name       = Column(String, nullable=True)
+    email           = Column(String, unique=True, nullable=True, index=True)
+    password_hash   = Column(String, nullable=False)
+    role            = Column(String, default="user")
+    permissions     = Column(Text, nullable=True)
+    is_active       = Column(Boolean, default=True)
     force_pw_change = Column(Boolean, default=False)
-    preferences   = Column(Text, nullable=True)            # JSON: {theme, custom_theme}
-    created_at    = Column(DateTime, server_default=func.now())
-    last_login    = Column(DateTime, nullable=True)
+    preferences     = Column(Text, nullable=True)
+    created_at      = Column(DateTime, server_default=func.now())
+    last_login      = Column(DateTime, nullable=True)

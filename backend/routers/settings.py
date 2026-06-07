@@ -9,11 +9,27 @@ Router: App Settings (server-side key-value store)
 """
 from __future__ import annotations
 import json
-from fastapi import APIRouter, Depends, HTTPException
+import os
+import uuid
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import AppSetting
+
+UPLOADS_DIR = Path(os.getenv("UPLOADS_DIR", "/opt/makerspace-erp/data/uploads"))
+BRANDING_DIR = UPLOADS_DIR / "branding"
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/svg+xml": ".svg",
+    "image/webp": ".webp",
+    "image/x-icon": ".ico",
+    "image/vnd.microsoft.icon": ".ico",
+}
 
 router = APIRouter(tags=["settings"])
 
@@ -43,6 +59,29 @@ SENSITIVE_FIELDS = {
     "ha":   ["token"],
 }
 
+# ── Asset upload (must be before generic /{key} routes) ───────────────────────
+
+@router.post("/api/settings/upload-asset")
+async def upload_asset(file: UploadFile = File(...)):
+    content_type = file.content_type or ""
+    ext = ALLOWED_IMAGE_TYPES.get(content_type)
+    if not ext:
+        if file.filename:
+            suffix = Path(file.filename).suffix.lower()
+            if suffix in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".ico"}:
+                ext = suffix if suffix != ".jpeg" else ".jpg"
+    if not ext:
+        raise HTTPException(400, f"Unsupported file type: {content_type or 'unknown'}")
+    BRANDING_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}{ext}"
+    dest = BRANDING_DIR / filename
+    data = await file.read()
+    dest.write_bytes(data)
+    return {"url": f"/uploads/branding/{filename}"}
+
+
+# ── Generic key-value settings ────────────────────────────────────────────────
+
 @router.get("/api/settings/{key}")
 def get_setting(key: str, db: Session = Depends(get_db)):
     val = _get(db, key)
@@ -56,14 +95,12 @@ def get_setting(key: str, db: Session = Depends(get_db)):
 
 @router.post("/api/settings/{key}")
 def set_setting(key: str, body: dict, db: Session = Depends(get_db)):
-    # Preserve existing sensitive values if placeholder submitted
     if key in SENSITIVE_FIELDS:
         existing = _get(db, key) or {}
         for field in SENSITIVE_FIELDS[key]:
             if body.get(field) == "***SAVED***":
                 body[field] = existing.get(field, "")
     _set(db, key, body)
-    # Return masked version
     masked = dict(body)
     for field in SENSITIVE_FIELDS.get(key, []):
         if masked.get(field):

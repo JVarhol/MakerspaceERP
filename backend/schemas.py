@@ -132,6 +132,8 @@ class ItemBase(BaseModel):
     expiry_date: Optional[str] = None
     image_url: Optional[str] = None
     notes: Optional[str] = None
+    unit_weight: Optional[float] = None
+    spool_empty_weight: Optional[float] = None
     is_assembly: bool = False
     mqtt_exposed: bool = False
     ha_exposed: bool = False
@@ -161,6 +163,8 @@ class ItemUpdate(BaseModel):
     expiry_date: Optional[str] = None
     image_url: Optional[str] = None
     notes: Optional[str] = None
+    unit_weight: Optional[float] = None
+    spool_empty_weight: Optional[float] = None
     is_assembly: Optional[bool] = None
     mqtt_exposed: Optional[bool] = None
     ha_exposed: Optional[bool] = None
@@ -195,6 +199,8 @@ class ItemSummary(BaseModel):
     locations: List[ItemLocationOut] = []
     packages_json: Optional[str] = None
     package_behavior: str = 'bulk'
+    unit_weight: Optional[float] = None
+    spool_empty_weight: Optional[float] = None
     low_stock: bool = False
     class Config:
         from_attributes = True
@@ -463,29 +469,3 @@ class KitOut(KitBase):
 class KitItemCreate(BaseModel):
     item_id: int
     quantity: float = 1.0
-
-
-# ── Assembly ──────────────────────────────────────────────────────────────────
-
-class AssemblyComponentOut(BaseModel):
-    id: int
-    component_id: int
-    component_name: Optional[str] = None
-    component_unit: Optional[str] = None
-    quantity_per_unit: float
-    in_stock: Optional[float] = None
-    class Config:
-        from_attributes = True
-
-class AssemblyComponentCreate(BaseModel):
-    component_id: int
-    quantity_per_unit: float = 1.0
-
-
-# ── App Settings ──────────────────────────────────────────────────────────────
-
-class SettingOut(BaseModel):
-    key: str
-    value: Optional[str] = None
-    class Config:
-        from_attributes = True

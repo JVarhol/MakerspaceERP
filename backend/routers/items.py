@@ -6,7 +6,7 @@ from typing import List, Optional
 from difflib import SequenceMatcher
 
 from ..database import get_db
-from ..models import Item, SupplierLink, ItemLocation, Location, ItemFieldValue, Transaction, AssemblyComponent
+from ..models import Item, SupplierLink, ItemLocation, Location, ItemFieldValue, Transaction, AssemblyComponent, KitItem, ProjectItem
 from ..auth import decode_token
 
 _security = HTTPBearer(auto_error=False)
@@ -169,7 +169,6 @@ def update_item(item_id: int, data: ItemUpdate, db: Session = Depends(get_db)):
     for k, v in data.model_dump(exclude_none=True).items():
         setattr(item, k, v)
     db.commit()
-    # Push to HA if exposed
     if item.ha_exposed:
         try:
             from .. import ha_service
@@ -280,7 +279,6 @@ def create_transaction(
     db.add(tx)
     db.commit()
     db.refresh(tx)
-    # Push updated quantity to HA if item is exposed
     if item.ha_exposed:
         try:
             from .. import ha_service
@@ -379,7 +377,6 @@ def build_assembly(item_id: int, db: Session = Depends(get_db)):
     comps = db.query(AssemblyComponent).filter(AssemblyComponent.assembly_id == item_id).all()
     if not comps:
         raise HTTPException(400, "Assembly has no components defined")
-    # Check stock
     shortfalls = []
     for c in comps:
         part = db.get(Item, c.component_id)
@@ -389,7 +386,6 @@ def build_assembly(item_id: int, db: Session = Depends(get_db)):
             )
     if shortfalls:
         raise HTTPException(409, "Insufficient stock: " + "; ".join(shortfalls))
-    # Deduct components
     for c in comps:
         part = db.get(Item, c.component_id)
         before = part.quantity
@@ -400,9 +396,8 @@ def build_assembly(item_id: int, db: Session = Depends(get_db)):
             quantity_change=-c.quantity_per_unit,
             quantity_before=before,
             quantity_after=part.quantity,
-            notes=f"Built: {assembly.name} ×1",
+            notes=f"Built: {assembly.name} x1",
         ))
-    # Increment assembly
     asm_before = assembly.quantity
     assembly.quantity = round(asm_before + 1, 6)
     db.add(Transaction(
@@ -416,3 +411,127 @@ def build_assembly(item_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(assembly)
     return {"built": 1, "assembly_qty": assembly.quantity}
+
+
+# ── Merge ─────────────────────────────────────────────────────────────────────
+
+@router.post("/{primary_id}/merge")
+def merge_items(primary_id: int, body: dict, db: Session = Depends(get_db)):
+    """Merge source item into primary: re-parent all relations, sum quantities, delete source."""
+    import json as _json
+    source_id = body.get("source_id")
+    if not source_id:
+        raise HTTPException(400, "source_id required")
+    if primary_id == source_id:
+        raise HTTPException(400, "Cannot merge an item with itself")
+
+    primary = db.get(Item, primary_id)
+    source  = db.get(Item, source_id)
+    if not primary:
+        raise HTTPException(404, "Primary item not found")
+    if not source:
+        raise HTTPException(404, "Source item not found")
+
+    source_qty = source.quantity or 0
+
+    # 1. Sum quantities
+    primary.quantity = round((primary.quantity or 0) + source_qty, 6)
+
+    # 2. Merge packages_json
+    try:
+        pkgs_p = _json.loads(primary.packages_json or "[]")
+        pkgs_s = _json.loads(source.packages_json or "[]")
+        if pkgs_s:
+            primary.packages_json = _json.dumps(pkgs_p + pkgs_s)
+    except Exception:
+        pass
+
+    # 3. Merge item_locations (with optional location_map overrides)
+    # location_map: {str(source_location_id): target_location_id_on_primary}
+    raw_map = body.get("location_map", {})
+    location_map = {int(k): int(v) for k, v in raw_map.items() if v}
+
+    primary_locs = {il.location_id: il for il in
+                    db.query(ItemLocation).filter(ItemLocation.item_id == primary_id).all()}
+    for il in db.query(ItemLocation).filter(ItemLocation.item_id == source_id).all():
+        target_loc_id = location_map.get(il.location_id, il.location_id)
+        if target_loc_id in primary_locs:
+            primary_locs[target_loc_id].quantity = round(
+                (primary_locs[target_loc_id].quantity or 0) + (il.quantity or 0), 6)
+            db.delete(il)
+        else:
+            # Adopt: redirect to target location (may be same or remapped)
+            il.item_id = primary_id
+            if target_loc_id != il.location_id:
+                il.location_id = target_loc_id
+
+    # 4. Re-parent transactions
+    for t in db.query(Transaction).filter(Transaction.item_id == source_id).all():
+        t.item_id = primary_id
+
+    # 5. Re-parent supplier links
+    for sl in db.query(SupplierLink).filter(SupplierLink.item_id == source_id).all():
+        sl.item_id = primary_id
+
+    # 6. Re-parent project_items
+    existing_proj = {pi.project_id for pi in
+                     db.query(ProjectItem).filter(ProjectItem.item_id == primary_id).all()}
+    for pi in db.query(ProjectItem).filter(ProjectItem.item_id == source_id).all():
+        if pi.project_id in existing_proj:
+            db.delete(pi)
+        else:
+            pi.item_id = primary_id
+
+    # 7. Re-parent po_items
+    from ..models import POItem
+    for poi in db.query(POItem).filter(POItem.item_id == source_id).all():
+        poi.item_id = primary_id
+
+    # 8. Re-parent kit_items
+    existing_kits = {ki.kit_id for ki in
+                     db.query(KitItem).filter(KitItem.item_id == primary_id).all()}
+    for ki in db.query(KitItem).filter(KitItem.item_id == source_id).all():
+        if ki.kit_id in existing_kits:
+            db.delete(ki)
+        else:
+            ki.item_id = primary_id
+
+    # 9. Re-parent assembly_components
+    existing_asms = {ac.assembly_id for ac in
+                     db.query(AssemblyComponent).filter(AssemblyComponent.component_id == primary_id).all()}
+    for ac in db.query(AssemblyComponent).filter(AssemblyComponent.component_id == source_id).all():
+        if ac.assembly_id in existing_asms:
+            db.delete(ac)
+        else:
+            ac.component_id = primary_id
+    for ac in db.query(AssemblyComponent).filter(AssemblyComponent.assembly_id == source_id).all():
+        ac.assembly_id = primary_id
+
+    # 10. Re-parent item_field_values
+    existing_fields = {fv.field_id for fv in
+                       db.query(ItemFieldValue).filter(ItemFieldValue.item_id == primary_id).all()}
+    for fv in db.query(ItemFieldValue).filter(ItemFieldValue.item_id == source_id).all():
+        if fv.field_id in existing_fields:
+            db.delete(fv)
+        else:
+            fv.item_id = primary_id
+
+    # 11. Log merge transaction
+    qty_before = round(primary.quantity - source_qty, 6)
+    db.add(Transaction(
+        item_id=primary_id,
+        transaction_type="adjustment",
+        quantity_change=source_qty,
+        quantity_before=qty_before,
+        quantity_after=primary.quantity,
+        notes=f"Merged from: {source.name} (id {source_id})",
+    ))
+
+    # 12. Delete source and commit
+    db.flush()
+    db.delete(source)
+    db.commit()
+    db.refresh(primary)
+
+    from ..schemas import ItemOut
+    return ItemOut.model_validate(primary)
