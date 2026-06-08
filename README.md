@@ -1,5 +1,10 @@
 # Makerspace ERP
 
+This was vibe codes by me and Claude because I couldn't find an ERP solution that free, open source and actually worked how I wanted.
+
+For feedback, feature requests and to see whats in progress checkout https://discord.gg/MSwYkzRKU
+
+
 A self-hosted inventory and asset management system for home makerspaces. Single-file frontend, FastAPI + SQLite backend, runs as a systemd service.
 
 **Current version: ALPHA v1.4.13**
