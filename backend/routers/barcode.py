@@ -3,11 +3,12 @@ from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from ..schemas import BarcodeLookupResult, UrlMetaResult
 
-router = APIRouter(prefix="/api", tags=["barcode"])
+from ..auth import get_current_user
+router = APIRouter(prefix="/api", tags=["barcode"], dependencies=[Depends(get_current_user)])
 
 HEADERS = {"User-Agent": "MakerspaceERP/1.1 (+home-lab)"}
 

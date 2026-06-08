@@ -61,6 +61,8 @@ class LocationBase(BaseModel):
     description: Optional[str] = None
     parent_id: Optional[int] = None
     location_type: str = "bin"
+    is_restricted: bool = False
+    bin_id: Optional[str] = None
 
 class LocationCreate(LocationBase):
     pass
@@ -70,9 +72,51 @@ class LocationUpdate(BaseModel):
     description: Optional[str] = None
     parent_id: Optional[int] = None
     location_type: Optional[str] = None
+    is_restricted: Optional[bool] = None
+    bin_id: Optional[str] = None
 
 class LocationOut(LocationBase):
     id: int
+    class Config:
+        from_attributes = True
+
+
+# ── Supplier ──────────────────────────────────────────────────────────────────
+
+class SupplierBase(BaseModel):
+    name: str
+    contact_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip: Optional[str] = None
+    country: Optional[str] = None
+    website: Optional[str] = None
+    account_number: Optional[str] = None
+    notes: Optional[str] = None
+
+class SupplierCreate(SupplierBase):
+    pass
+
+class SupplierUpdate(BaseModel):
+    name: Optional[str] = None
+    contact_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip: Optional[str] = None
+    country: Optional[str] = None
+    website: Optional[str] = None
+    account_number: Optional[str] = None
+    notes: Optional[str] = None
+
+class SupplierOut(SupplierBase):
+    id: int
+    created_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 
@@ -104,6 +148,7 @@ class ItemLocationOut(BaseModel):
     location_id: int
     location: LocationOut
     quantity: float
+    effective_restricted: bool = False
     class Config:
         from_attributes = True
 
@@ -115,6 +160,7 @@ class ItemBase(BaseModel):
     description: Optional[str] = None
     barcode: Optional[str] = None
     sku: Optional[str] = None
+    alt_skus: Optional[str] = None
     category_id: Optional[int] = None
     unit_type: str = "quantity"   # quantity | weight | volume
     unit_name: str = "pcs"
@@ -146,6 +192,7 @@ class ItemUpdate(BaseModel):
     description: Optional[str] = None
     barcode: Optional[str] = None
     sku: Optional[str] = None
+    alt_skus: Optional[str] = None
     category_id: Optional[int] = None
     unit_type: Optional[str] = None
     unit_name: Optional[str] = None
@@ -184,6 +231,7 @@ class ItemSummary(BaseModel):
     name: str
     barcode: Optional[str] = None
     sku: Optional[str] = None
+    alt_skus: Optional[str] = None
     unit_type: str
     unit_name: str
     quantity: float
@@ -298,16 +346,19 @@ class ProjectOut(ProjectBase):
 class POItemCreate(BaseModel):
     item_id: int
     quantity_ordered: float
+    unit_price: Optional[float] = None
     notes: Optional[str] = None
 
 class POItemUpdate(BaseModel):
     quantity_ordered: Optional[float] = None
+    unit_price: Optional[float] = None
     notes: Optional[str] = None
     status: Optional[str] = None
 
 class POItemReceive(BaseModel):
     quantity_received: float
     notes: Optional[str] = None
+    location_id: Optional[int] = None
 
 class POItemOut(BaseModel):
     id: int
@@ -315,6 +366,7 @@ class POItemOut(BaseModel):
     item_id: int
     quantity_ordered: float
     quantity_received: float
+    unit_price: Optional[float] = None
     notes: Optional[str] = None
     status: str
     item: Optional[ItemSummary] = None
@@ -322,6 +374,7 @@ class POItemOut(BaseModel):
         from_attributes = True
 
 class PurchaseOrderCreate(BaseModel):
+    supplier_id: Optional[int] = None
     supplier_name: Optional[str] = None
     expected_date: Optional[str] = None
     notes: Optional[str] = None
@@ -332,6 +385,7 @@ class PurchaseOrderCreate(BaseModel):
 
 class PurchaseOrderUpdate(BaseModel):
     po_number: Optional[str] = None
+    supplier_id: Optional[int] = None
     supplier_name: Optional[str] = None
     expected_date: Optional[str] = None
     notes: Optional[str] = None
@@ -344,7 +398,9 @@ class PurchaseOrderReceive(BaseModel):
 class PurchaseOrderOut(BaseModel):
     id: int
     po_number: Optional[str] = None
+    supplier_id: Optional[int] = None
     supplier_name: Optional[str] = None
+    supplier: Optional[SupplierOut] = None
     expected_date: Optional[str] = None
     notes: Optional[str] = None
     status: str
@@ -390,6 +446,8 @@ class AssetBase(BaseModel):
     purchase_price: Optional[float] = None
     image_url: Optional[str] = None
     notes: Optional[str] = None
+    mqtt_exposed: bool = False
+    ha_exposed: bool = False
 
 class AssetCreate(AssetBase):
     pass

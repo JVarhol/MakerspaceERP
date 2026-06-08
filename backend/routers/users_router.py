@@ -118,3 +118,12 @@ def delete_user(uid: int, admin: User = Depends(require_admin), db: Session = De
     u = db.get(User, uid)
     if not u: raise HTTPException(404, "User not found")
     db.delete(u); db.commit()
+
+
+@router.post("/api/users/{uid}/revoke-sessions", status_code=204)
+def admin_revoke_user_sessions(uid: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Admin: invalidate all refresh tokens for a user by bumping their token_version."""
+    u = db.get(User, uid)
+    if not u: raise HTTPException(404, "User not found")
+    u.token_version = (u.token_version or 0) + 1
+    db.commit()

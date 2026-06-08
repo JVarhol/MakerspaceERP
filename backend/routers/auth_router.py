@@ -9,6 +9,7 @@ Router: Authentication
 from __future__ import annotations
 import json
 from datetime import datetime, timezone
+from typing import Any, List
 
 from collections import defaultdict
 from time import time as _time
@@ -18,10 +19,17 @@ from typing import Optional
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-# ── Simple in-memory rate limiter ─────────────────────────────────────────────
+# ── Rate limiter ──────────────────────────────────────────────────────────────
 _login_attempts: dict = defaultdict(list)  # ip → [timestamps]
 _MAX_ATTEMPTS   = 10
 _WINDOW_SECONDS = 900  # 15 minutes
+
+def _get_client_ip(request: Request) -> str:
+    """Return real client IP, honouring X-Forwarded-For set by a reverse proxy."""
+    xff = request.headers.get("X-Forwarded-For")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
 
 def _check_rate_limit(ip: str):
     now = _time()
@@ -41,6 +49,7 @@ from ..auth import (
     verify_password, hash_password,
     create_access_token, create_refresh_token, decode_token,
     get_current_user, get_permissions,
+    revoke_token, is_token_revoked, cleanup_expired_tokens,
 )
 
 router = APIRouter(tags=["auth"])
@@ -60,27 +69,38 @@ class ChangePasswordBody(BaseModel):
 class PreferencesBody(BaseModel):
     theme: Optional[str] = None          # "dark" | "light"
     custom_theme: Optional[dict] = None  # CSS var overrides or null to clear
+    user_presets: Optional[dict] = None  # {name: {varName: value}} – null clears all
+    dark_preset: Optional[str] = None    # name of selected dark-mode preset
+    light_preset: Optional[str] = None   # name of selected light-mode preset
+    sidebar_prefs: Optional[dict] = None          # {nav-id: bool} visibility
+    sidebar_order: Optional[List[Any]] = None     # [nav-id | {type,id,label}] – null clears
+    settings_tabs_order: Optional[List[str]] = None  # [tab-id, ...]
+    settings_tabs_vis: Optional[dict] = None         # {tab-id: bool}
+    dashboard_widgets: Optional[List[Any]] = None    # [{id, visible}] – null clears
+    dashboard_cols: Optional[int] = None              # stat-card column count (1-4)
 
+
+class LogoutBody(BaseModel):
+    refresh_token: Optional[str] = None
 
 @router.post("/api/auth/login")
 def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
-    ip = request.client.host if request.client else "unknown"
+    ip = _get_client_ip(request)
     _check_rate_limit(ip)
     user = db.query(User).filter(User.username == body.username).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid username or password")
-    # Clear attempts on successful login
     _login_attempts.pop(ip, None)
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account disabled")
-
-    # Update last login
     user.last_login = datetime.now(timezone.utc)
     db.commit()
-
+    # Periodically clean expired blocklist entries
+    try: cleanup_expired_tokens(db)
+    except Exception: pass
     return {
-        "access_token":  create_access_token(user.id, user.username, user.role),
-        "refresh_token": create_refresh_token(user.id),
+        "access_token":  create_access_token(user.id, user.username, user.role, user.token_version),
+        "refresh_token": create_refresh_token(user.id, user.token_version),
         "token_type":    "bearer",
         "user": _user_dict(user),
     }
@@ -91,18 +111,41 @@ def refresh_token(body: RefreshBody, db: Session = Depends(get_db)):
     payload = decode_token(body.refresh_token)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
+    jti = payload.get("jti")
+    if jti and is_token_revoked(jti, db):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token has been revoked")
     user = db.get(User, int(payload["sub"]))
     if not user or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
+    # Reject tokens issued before a password change (token_version mismatch)
+    if payload.get("tv", 0) != user.token_version:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token invalidated — please log in again")
     return {
-        "access_token": create_access_token(user.id, user.username, user.role),
+        "access_token": create_access_token(user.id, user.username, user.role, user.token_version),
         "token_type": "bearer",
     }
 
 
 @router.post("/api/auth/logout", status_code=204)
-def logout():
-    # Client-side token deletion; no server-side state
+def logout(body: LogoutBody = LogoutBody(), db: Session = Depends(get_db)):
+    if body.refresh_token:
+        payload = decode_token(body.refresh_token)
+        if payload and payload.get("jti") and payload.get("exp"):
+            from datetime import datetime, timezone
+            expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+            try: revoke_token(payload["jti"], expires_at, db)
+            except Exception: pass
+    return None
+
+
+@router.post("/api/auth/revoke-sessions", status_code=204)
+def revoke_all_sessions(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Invalidate all refresh tokens for this user by bumping token_version."""
+    user.token_version = (user.token_version or 0) + 1
+    db.commit()
     return None
 
 
@@ -123,6 +166,7 @@ def change_password(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Password must be at least 8 characters")
     user.password_hash = hash_password(body.new_password)
     user.force_pw_change = False
+    user.token_version = (user.token_version or 0) + 1  # invalidate all existing refresh tokens
     db.commit()
 
 
@@ -157,6 +201,24 @@ def save_preferences(
     if body.theme is not None:
         existing["theme"] = body.theme
     if "custom_theme" in body.model_fields_set:
-        existing["custom_theme"] = body.custom_theme  # None clears it
+        existing["custom_theme"] = body.custom_theme
+    if "user_presets" in body.model_fields_set:
+        existing["user_presets"] = body.user_presets
+    if body.dark_preset is not None:
+        existing["dark_preset"] = body.dark_preset
+    if body.light_preset is not None:
+        existing["light_preset"] = body.light_preset
+    if body.sidebar_prefs is not None:
+        existing["sidebar_prefs"] = body.sidebar_prefs
+    if "sidebar_order" in body.model_fields_set:
+        existing["sidebar_order"] = body.sidebar_order
+    if body.settings_tabs_order is not None:
+        existing["settings_tabs_order"] = body.settings_tabs_order
+    if body.settings_tabs_vis is not None:
+        existing["settings_tabs_vis"] = body.settings_tabs_vis
+    if "dashboard_widgets" in body.model_fields_set:
+        existing["dashboard_widgets"]= body.dashboard_widgets
+    if body.dashboard_cols is not None:
+        existing["dashboard_cols"] = body.dashboard_cols
     user.preferences = json.dumps(existing)
     db.commit()

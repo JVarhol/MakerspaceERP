@@ -39,6 +39,8 @@ class Location(Base):
     description = Column(Text, nullable=True)
     parent_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     location_type = Column(String, default="bin")
+    is_restricted = Column(Boolean, default=False)
+    bin_id = Column(String, nullable=True)
 
     parent = relationship("Location", remote_side=[id], backref="children")
     item_locations = relationship("ItemLocation", back_populates="location")
@@ -52,6 +54,7 @@ class Item(Base):
     description = Column(Text, nullable=True)
     barcode = Column(String, nullable=True, unique=True, index=True)
     sku = Column(String, nullable=True, index=True)
+    alt_skus = Column(Text, nullable=True)  # comma-separated alternative SKUs/barcodes
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     unit_type = Column(String, default="quantity")
     unit_name = Column(String, default="pcs")
@@ -168,6 +171,7 @@ class PurchaseOrder(Base):
     item_id = Column(Integer, ForeignKey("items.id"), nullable=True)
     quantity_ordered = Column(Float, nullable=True)
     quantity_received = Column(Float, default=0.0)
+    supplier_id = Column(Integer, ForeignKey("suppliers.id"), nullable=True)
     supplier_name = Column(String, nullable=True)
     expected_date = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
@@ -175,6 +179,7 @@ class PurchaseOrder(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     item = relationship("Item")
+    supplier = relationship("Supplier", back_populates="purchase_orders")
     line_items = relationship("PurchaseOrderItem", back_populates="po",
                               cascade="all, delete-orphan", order_by="PurchaseOrderItem.id")
 
@@ -187,6 +192,7 @@ class PurchaseOrderItem(Base):
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     quantity_ordered = Column(Float, nullable=False)
     quantity_received = Column(Float, default=0.0)
+    unit_price = Column(Float, nullable=True)
     notes = Column(Text, nullable=True)
     status = Column(String, default="pending")
     created_at = Column(DateTime, server_default=func.now())
@@ -218,6 +224,7 @@ class Asset(Base):
 
     location  = relationship("Location")
     checkouts = relationship("AssetCheckout", back_populates="asset", cascade="all, delete-orphan")
+    maintenance_schedules = relationship("AssetMaintenanceSchedule", back_populates="asset", cascade="all, delete-orphan")
 
 
 class AssetCheckout(Base):
@@ -244,6 +251,7 @@ class CategoryField(Base):
     field_options = Column(Text, nullable=True)
     required      = Column(Boolean, default=False)
     sort_order    = Column(Integer, default=0)
+    show_in_list  = Column(Boolean, default=False)
 
     category = relationship("Category", backref="custom_fields")
     values   = relationship("ItemFieldValue", back_populates="field", cascade="all, delete-orphan")
@@ -302,6 +310,60 @@ class AssemblyComponent(Base):
     component = relationship("Item", foreign_keys=[component_id])
 
 
+class AssetMaintenanceSchedule(Base):
+    __tablename__ = "asset_maintenance_schedules"
+
+    id            = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    asset_id      = Column(Integer, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    task_name     = Column(String, nullable=False)
+    interval_days = Column(Integer, nullable=True)   # None = one-time task
+    next_due      = Column(String, nullable=True)    # YYYY-MM-DD
+    assigned_to   = Column(String, nullable=True)
+    notes         = Column(Text, nullable=True)
+    created_at    = Column(DateTime, server_default=func.now())
+
+    asset = relationship("Asset", back_populates="maintenance_schedules")
+    logs  = relationship("AssetMaintenanceLog", back_populates="schedule",
+                         cascade="all, delete-orphan")
+
+
+class AssetMaintenanceLog(Base):
+    __tablename__ = "asset_maintenance_logs"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    asset_id    = Column(Integer, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    schedule_id = Column(Integer, ForeignKey("asset_maintenance_schedules.id", ondelete="SET NULL"), nullable=True)
+    task_name   = Column(String, nullable=False)
+    done_at     = Column(String, nullable=False)
+    done_by     = Column(String, nullable=True)
+    notes       = Column(Text, nullable=True)
+    created_at  = Column(DateTime, server_default=func.now())
+
+    asset    = relationship("Asset")
+    schedule = relationship("AssetMaintenanceSchedule", back_populates="logs")
+
+
+class Supplier(Base):
+    __tablename__ = "suppliers"
+
+    id             = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    name           = Column(String, nullable=False)
+    contact_name   = Column(String, nullable=True)
+    email          = Column(String, nullable=True)
+    phone          = Column(String, nullable=True)
+    address        = Column(String, nullable=True)
+    city           = Column(String, nullable=True)
+    state          = Column(String, nullable=True)
+    zip            = Column(String, nullable=True)
+    country        = Column(String, nullable=True)
+    website        = Column(String, nullable=True)
+    account_number = Column(String, nullable=True)
+    notes          = Column(Text, nullable=True)
+    created_at     = Column(DateTime, server_default=func.now())
+
+    purchase_orders = relationship("PurchaseOrder", back_populates="supplier")
+
+
 class AppSetting(Base):
     __tablename__ = "app_settings"
 
@@ -323,5 +385,14 @@ class User(Base):
     is_active       = Column(Boolean, default=True)
     force_pw_change = Column(Boolean, default=False)
     preferences     = Column(Text, nullable=True)
+    token_version   = Column(Integer, default=0, nullable=False)
     created_at      = Column(DateTime, server_default=func.now())
     last_login      = Column(DateTime, nullable=True)
+
+
+class TokenBlocklist(Base):
+    """Revoked refresh token JTIs — checked on /api/auth/refresh."""
+    __tablename__ = "token_blocklist"
+
+    jti        = Column(String, primary_key=True)
+    expires_at = Column(DateTime, nullable=False)

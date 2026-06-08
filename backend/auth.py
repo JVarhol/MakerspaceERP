@@ -4,6 +4,7 @@ JWT authentication utilities and dependencies.
 from __future__ import annotations
 import json
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -56,25 +57,29 @@ security = HTTPBearer(auto_error=False)
 # ── Default permissions ───────────────────────────────────────────────────────
 
 DEFAULT_USER_PERMISSIONS = {
-    "items":          {"read": True,  "write": True},
-    "assets":         {"read": True,  "write": True},
-    "locations":      {"read": True,  "write": True},
-    "categories":     {"read": True,  "write": True},
-    "materials":      {"read": True,  "write": True},
-    "transactions":   {"read": True},
-    "projects":       {"read": True,  "write": True},
-    "purchase_orders":{"read": True,  "write": True},
-    "kits":           {"read": True,  "write": True},
-    "reports":        {"read": True},
-    "trends":         {"read": True},
-    "settings":       False,
-    "users":          False,
+    "items":               {"read": True,  "write": True},
+    "assets":              {"read": True,  "write": True},
+    "locations":           {"read": True,  "write": True},
+    "categories":          {"read": True,  "write": True},
+    "materials":           {"read": True,  "write": True},
+    "transactions":        {"read": True},
+    "projects":            {"read": True,  "write": True},
+    "purchase_orders":     {"read": True,  "write": True},
+    "suppliers":           {"read": True,  "write": True},
+    "kits":                {"read": True,  "write": True},
+    "reports":             {"read": True},
+    "trends":              {"read": True},
+    "shelf_map":            {"read": True, "write": False},  # view yes, edit no by default
+    "restricted_locations":{"read": False},   # denied by default
+    "settings":            False,
+    "users":               False,
 }
 
 ADMIN_PERMISSIONS = {k: ({"read": True, "write": True} if isinstance(v, dict) else True)
                     for k, v in DEFAULT_USER_PERMISSIONS.items()}
-ADMIN_PERMISSIONS["settings"] = True
-ADMIN_PERMISSIONS["users"]    = True
+ADMIN_PERMISSIONS["settings"]            = True
+ADMIN_PERMISSIONS["users"]               = True
+ADMIN_PERMISSIONS["restricted_locations"] = {"read": True}
 
 
 # ── Password helpers ──────────────────────────────────────────────────────────
@@ -88,18 +93,19 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT helpers ───────────────────────────────────────────────────────────────
 
-def create_access_token(user_id: int, username: str, role: str) -> str:
+def create_access_token(user_id: int, username: str, role: str, token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
         {"sub": str(user_id), "username": username, "role": role,
-         "type": "access", "exp": expire},
+         "type": "access", "exp": expire, "tv": token_version},
         SECRET_KEY, algorithm=ALGORITHM,
     )
 
-def create_refresh_token(user_id: int) -> str:
+def create_refresh_token(user_id: int, token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     return jwt.encode(
-        {"sub": str(user_id), "type": "refresh", "exp": expire},
+        {"sub": str(user_id), "type": "refresh", "exp": expire,
+         "jti": uuid.uuid4().hex, "tv": token_version},
         SECRET_KEY, algorithm=ALGORITHM,
     )
 
@@ -108,6 +114,25 @@ def decode_token(token: str) -> Optional[dict]:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+
+# ── Token revocation ──────────────────────────────────────────────────────────
+
+def revoke_token(jti: str, expires_at: datetime, db: Session) -> None:
+    from .models import TokenBlocklist
+    db.merge(TokenBlocklist(jti=jti, expires_at=expires_at))
+    db.commit()
+
+def is_token_revoked(jti: str, db: Session) -> bool:
+    from .models import TokenBlocklist
+    return db.get(TokenBlocklist, jti) is not None
+
+def cleanup_expired_tokens(db: Session) -> None:
+    from .models import TokenBlocklist
+    db.query(TokenBlocklist).filter(
+        TokenBlocklist.expires_at < datetime.now(timezone.utc)
+    ).delete()
+    db.commit()
 
 
 # ── FastAPI dependencies ──────────────────────────────────────────────────────
@@ -128,6 +153,9 @@ def get_current_user(
         raise exc
     user = db.get(User, int(payload["sub"]))
     if not user or not user.is_active:
+        raise exc
+    # Reject access tokens issued before a session revocation
+    if payload.get("tv", 0) != (user.token_version or 0):
         raise exc
     return user
 

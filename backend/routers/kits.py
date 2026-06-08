@@ -19,8 +19,34 @@ from ..database import get_db
 from ..models import Kit, KitItem, Item, Transaction
 from ..schemas import KitCreate, KitUpdate, KitOut, KitItemCreate, KitItemOut
 
-router = APIRouter(tags=["kits"])
+from ..auth import get_current_user, require_permission
+router = APIRouter(tags=["kits"], dependencies=[Depends(get_current_user)])
+_W = Depends(require_permission('kits', 'write'))
 
+
+
+def _publish_kit(db, kit):
+    try:
+        from .. import mqtt_service, ha_service
+        if not kit.kit_items:
+            buildable = 0
+        else:
+            min_b = None
+            for ki in kit.kit_items:
+                it = db.get(Item, ki.item_id)
+                if not it or ki.quantity <= 0:
+                    min_b = 0; break
+                b = int(it.quantity // ki.quantity)
+                if min_b is None or b < min_b:
+                    min_b = b
+            buildable = min_b or 0
+        if mqtt_service._is_module_mqtt_enabled(db, "kits"):
+            mqtt_service.publish_kit_discovery(kit.id, kit.name)
+            mqtt_service.publish_kit_state(kit.id, kit.name, buildable, len(kit.kit_items))
+        if ha_service._is_module_ha_enabled(db, "kits"):
+            ha_service.push_kit_state(kit.id, kit.name, buildable, len(kit.kit_items))
+    except Exception:
+        pass
 
 @router.get("/api/kits", response_model=List[KitOut])
 def list_kits(db: Session = Depends(get_db)):
@@ -29,11 +55,12 @@ def list_kits(db: Session = Depends(get_db)):
 
 
 @router.post("/api/kits", response_model=KitOut, status_code=201)
-def create_kit(body: KitCreate, db: Session = Depends(get_db)):
+def create_kit(body: KitCreate, _w=_W, db: Session = Depends(get_db)):
     kit = Kit(**body.model_dump())
     db.add(kit)
     db.commit()
     db.refresh(kit)
+    _publish_kit(db, kit)
     return _kit_out(kit)
 
 
@@ -46,7 +73,7 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/api/kits/{kit_id}", response_model=KitOut)
-def update_kit(kit_id: int, body: KitUpdate, db: Session = Depends(get_db)):
+def update_kit(kit_id: int, body: KitUpdate, _w=_W, db: Session = Depends(get_db)):
     kit = db.get(Kit, kit_id)
     if not kit:
         raise HTTPException(404, "Kit not found")
@@ -54,20 +81,26 @@ def update_kit(kit_id: int, body: KitUpdate, db: Session = Depends(get_db)):
         setattr(kit, k, v)
     db.commit()
     db.refresh(kit)
+    _publish_kit(db, kit)
     return _kit_out(kit)
 
 
 @router.delete("/api/kits/{kit_id}", status_code=204)
-def delete_kit(kit_id: int, db: Session = Depends(get_db)):
+def delete_kit(kit_id: int, _w=_W, db: Session = Depends(get_db)):
     kit = db.get(Kit, kit_id)
     if not kit:
         raise HTTPException(404, "Kit not found")
+    try:
+        from .. import mqtt_service
+        mqtt_service.remove_kit_discovery(kit_id)
+    except Exception:
+        pass
     db.delete(kit)
     db.commit()
 
 
 @router.post("/api/kits/{kit_id}/items", response_model=KitItemOut, status_code=201)
-def add_kit_item(kit_id: int, body: KitItemCreate, db: Session = Depends(get_db)):
+def add_kit_item(kit_id: int, body: KitItemCreate, _w=_W, db: Session = Depends(get_db)):
     kit = db.get(Kit, kit_id)
     if not kit:
         raise HTTPException(404, "Kit not found")
@@ -91,7 +124,7 @@ def add_kit_item(kit_id: int, body: KitItemCreate, db: Session = Depends(get_db)
 
 
 @router.delete("/api/kits/{kit_id}/items/{ki_id}", status_code=204)
-def remove_kit_item(kit_id: int, ki_id: int, db: Session = Depends(get_db)):
+def remove_kit_item(kit_id: int, ki_id: int, _w=_W, db: Session = Depends(get_db)):
     ki = db.query(KitItem).filter(KitItem.id == ki_id, KitItem.kit_id == kit_id).first()
     if not ki:
         raise HTTPException(404, "Kit item not found")
@@ -100,7 +133,7 @@ def remove_kit_item(kit_id: int, ki_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/api/kits/{kit_id}/restock", status_code=200)
-def restock_kit(kit_id: int, db: Session = Depends(get_db)):
+def restock_kit(kit_id: int, _w=_W, db: Session = Depends(get_db)):
     """Add one kit's worth of all components to inventory."""
     kit = db.get(Kit, kit_id)
     if not kit:
@@ -124,6 +157,8 @@ def restock_kit(kit_id: int, db: Session = Depends(get_db)):
         ))
         updated.append({"item_id": item.id, "added": ki.quantity})
     db.commit()
+    db.refresh(kit)
+    _publish_kit(db, kit)
     return {"restocked": len(updated), "items": updated}
 
 

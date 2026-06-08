@@ -25,13 +25,13 @@ ALLOWED_IMAGE_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/gif": ".gif",
-    "image/svg+xml": ".svg",
     "image/webp": ".webp",
     "image/x-icon": ".ico",
     "image/vnd.microsoft.icon": ".ico",
 }
 
-router = APIRouter(tags=["settings"])
+from ..auth import get_current_user
+router = APIRouter(tags=["settings"], dependencies=[Depends(get_current_user)])
 
 
 def _get(db: Session, key: str) -> dict | None:
@@ -61,21 +61,34 @@ SENSITIVE_FIELDS = {
 
 # ── Asset upload (must be before generic /{key} routes) ───────────────────────
 
+DEFAULT_UPLOAD_MB = 5
+
 @router.post("/api/settings/upload-asset")
-async def upload_asset(file: UploadFile = File(...)):
+async def upload_asset(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # Respect admin-configured upload size limit (default 5 MB)
+    limits = _get(db, "upload_limits") or {}
+    try:
+        max_mb = max(1, int(limits.get("max_mb", DEFAULT_UPLOAD_MB)))
+    except (ValueError, TypeError):
+        max_mb = DEFAULT_UPLOAD_MB
+    max_bytes = max_mb * 1024 * 1024
+
     content_type = file.content_type or ""
     ext = ALLOWED_IMAGE_TYPES.get(content_type)
     if not ext:
         if file.filename:
             suffix = Path(file.filename).suffix.lower()
-            if suffix in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".ico"}:
+            # SVG excluded — can contain executable script tags
+            if suffix in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico"}:
                 ext = suffix if suffix != ".jpeg" else ".jpg"
     if not ext:
-        raise HTTPException(400, f"Unsupported file type: {content_type or 'unknown'}")
+        raise HTTPException(400, f"Unsupported file type: {content_type or 'unknown'}. SVG files are not permitted.")
     BRANDING_DIR.mkdir(parents=True, exist_ok=True)
     filename = f"{uuid.uuid4().hex}{ext}"
     dest = BRANDING_DIR / filename
-    data = await file.read()
+    data = await file.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        raise HTTPException(413, f"File too large (max {max_mb} MB)")
     dest.write_bytes(data)
     return {"url": f"/uploads/branding/{filename}"}
 
@@ -179,3 +192,37 @@ def ha_push_all(db: Session = Depends(get_db)):
     ic = ha_service.push_all_items(items)
     ac = ha_service.push_all_assets(assets)
     return {"items_pushed": ic, "assets_pushed": ac}
+
+
+@router.post("/api/mqtt/publish-module-discovery")
+def publish_module_discovery(db: Session = Depends(get_db)):
+    """Bulk-publish MQTT discovery + state for all enabled modules."""
+    from .. import mqtt_service
+    mqtt_service.publish_all_modules(db)
+    # Also publish items/assets (existing)
+    from ..models import Item, Asset
+    from sqlalchemy.orm import joinedload
+    items  = db.query(Item).filter(Item.mqtt_exposed == True).all()
+    assets = db.query(Asset).options(joinedload(Asset.location), joinedload(Asset.checkouts)).filter(Asset.mqtt_exposed == True).all()
+    ic = mqtt_service.publish_all_discovery(items)
+    for a in assets:
+        mqtt_service.publish_asset_discovery(a)
+    return {"ok": True, "items_published": ic, "assets_published": len(assets)}
+
+
+@router.post("/api/ha/push-modules")
+def ha_push_modules(db: Session = Depends(get_db)):
+    """Push HA state for all enabled modules."""
+    from .. import ha_service
+    counts = ha_service.push_all_modules(db)
+    return {"ok": True, "counts": counts}
+
+
+@router.post("/api/dashboard/publish-integration")
+def publish_dashboard_integration(db: Session = Depends(get_db)):
+    """Publish dashboard widget values to MQTT and/or HA for all enabled widgets."""
+    from .. import mqtt_service, ha_service
+    mqtt_count = mqtt_service.publish_all_dashboard_widgets(db)
+    ha_count   = ha_service.push_all_dashboard_widgets(db)
+    return {"ok": True, "mqtt_published": mqtt_count, "ha_pushed": ha_count}
+

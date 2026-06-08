@@ -7,7 +7,26 @@ from difflib import SequenceMatcher
 
 from ..database import get_db
 from ..models import Item, SupplierLink, ItemLocation, Location, ItemFieldValue, Transaction, AssemblyComponent, KitItem, ProjectItem
-from ..auth import decode_token
+from ..auth import decode_token, get_current_user, require_permission, can
+from ..models import User as _User
+
+_W = Depends(require_permission('items', 'write'))
+
+
+def _check_loc_restricted(loc) -> bool:
+    """Walk a Location's parent chain checking is_restricted."""
+    visited = set()
+    while loc:
+        if loc.id in visited:
+            break
+        visited.add(loc.id)
+        if loc.is_restricted:
+            return True
+        loc = getattr(loc, 'parent', None)
+    return False
+
+def _loc_is_restricted(il: ItemLocation) -> bool:
+    return _check_loc_restricted(il.location if il.location else None)
 
 _security = HTTPBearer(auto_error=False)
 
@@ -29,8 +48,13 @@ from ..schemas import (
     TransactionCreate, TransactionOut,
 )
 
-router = APIRouter(prefix="/api/items", tags=["items"])
+router = APIRouter(prefix="/api/items", tags=["items"], dependencies=[Depends(get_current_user)])
 
+
+def _stamp_effective_restricted(item: Item) -> None:
+    """Stamp effective_restricted on each ItemLocation using the full parent chain."""
+    for il in item.locations:
+        il.effective_restricted = _loc_is_restricted(il)
 
 def _load_item(db: Session, item_id: int) -> Item:
     item = (
@@ -45,6 +69,7 @@ def _load_item(db: Session, item_id: int) -> Item:
     )
     if not item:
         raise HTTPException(404, "Item not found")
+    _stamp_effective_restricted(item)
     return item
 
 
@@ -93,6 +118,7 @@ def list_items(
     location_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 200,
+    _cu: _User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     query = db.query(Item).options(
@@ -109,6 +135,7 @@ def list_items(
                     Item.name.ilike(like),
                     Item.sku.ilike(like),
                     Item.barcode.ilike(like),
+                    Item.alt_skus.ilike(like),
                     Item.material.ilike(like),
                     Item.color.ilike(like),
                     Item.manufacturer.ilike(like),
@@ -121,12 +148,25 @@ def list_items(
         query = query.filter(Item.category_id == category_id)
     if is_assembly is not None:
         query = query.filter(Item.is_assembly == is_assembly)
+    see_restricted = can(_cu, 'restricted_locations')
+
     if location_id is not None:
+        target_loc = db.get(Location, location_id)
+        if target_loc and not see_restricted and _check_loc_restricted(target_loc):
+            return []  # requested location is restricted — return nothing
         query = query.join(Item.locations).filter(ItemLocation.location_id == location_id)
 
     items = query.offset(skip).limit(limit).all()
     results = []
     for item in items:
+        _stamp_effective_restricted(item)
+        if not see_restricted:
+            original_locs = item.locations
+            visible_locs  = [il for il in original_locs if not _loc_is_restricted(il)]
+            # Hide item entirely if it has locations but ALL of them are restricted
+            if original_locs and not visible_locs:
+                continue
+            item.locations = visible_locs
         d = ItemSummary.model_validate(item)
         d.low_stock = item.quantity <= item.min_quantity and item.min_quantity > 0
         if low_stock is not None and d.low_stock != low_stock:
@@ -136,7 +176,7 @@ def list_items(
 
 
 @router.post("", response_model=ItemOut, status_code=201)
-def create_item(data: ItemCreate, db: Session = Depends(get_db)):
+def create_item(data: ItemCreate, _w=_W, db: Session = Depends(get_db)):
     links = data.supplier_links
     item_data = data.model_dump(exclude={"supplier_links"})
     item = Item(**item_data)
@@ -150,38 +190,63 @@ def create_item(data: ItemCreate, db: Session = Depends(get_db)):
 
 @router.get("/barcode/{barcode}", response_model=ItemOut)
 def get_by_barcode(barcode: str, db: Session = Depends(get_db)):
+    # Primary barcode match
     item = db.query(Item).filter(Item.barcode == barcode).first()
+    if not item:
+        # Alt SKUs: stored as comma-separated; search with LIKE
+        item = db.query(Item).filter(
+            or_(
+                Item.alt_skus == barcode,
+                Item.alt_skus.like(barcode + ",%"),
+                Item.alt_skus.like("%," + barcode + ",%"),
+                Item.alt_skus.like("%," + barcode),
+            )
+        ).first()
     if not item:
         raise HTTPException(404, "No item with that barcode")
     return _load_item(db, item.id)
 
 
 @router.get("/{item_id}", response_model=ItemOut)
-def get_item(item_id: int, db: Session = Depends(get_db)):
-    return _load_item(db, item_id)
+def get_item(item_id: int, _cu: _User = Depends(get_current_user), db: Session = Depends(get_db)):
+    item = _load_item(db, item_id)
+    if not can(_cu, 'restricted_locations'):
+        original_locs = item.locations
+        visible_locs  = [il for il in original_locs if not _loc_is_restricted(il)]
+        # If the item exists only in restricted locations, deny access
+        if original_locs and not visible_locs:
+            raise HTTPException(404, "Item not found")
+        item.locations = visible_locs
+    return item
 
 
 @router.patch("/{item_id}", response_model=ItemOut)
-def update_item(item_id: int, data: ItemUpdate, db: Session = Depends(get_db)):
+def update_item(item_id: int, data: ItemUpdate, _w=_W, db: Session = Depends(get_db)):
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(404, "Item not found")
     for k, v in data.model_dump(exclude_none=True).items():
         setattr(item, k, v)
     db.commit()
+    cat = item.category.name if item.category else ""
+    low = item.quantity <= item.min_quantity and item.min_quantity > 0
     if item.ha_exposed:
         try:
             from .. import ha_service
-            cat = item.category.name if item.category else ""
-            low = item.quantity <= item.min_quantity and item.min_quantity > 0
             ha_service.push_item_state(item.id, item.name, item.quantity, item.unit_name, cat, low)
+        except Exception:
+            pass
+    if item.mqtt_exposed:
+        try:
+            from .. import mqtt_service
+            mqtt_service.publish_item_state(item.id, item.name, item.quantity, item.unit_name, cat)
         except Exception:
             pass
     return _load_item(db, item_id)
 
 
 @router.delete("/{item_id}", status_code=204)
-def delete_item(item_id: int, db: Session = Depends(get_db)):
+def delete_item(item_id: int, _w=_W, db: Session = Depends(get_db)):
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(404, "Item not found")
@@ -190,7 +255,7 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{item_id}/suppliers", response_model=SupplierLinkOut, status_code=201)
-def add_supplier(item_id: int, data: SupplierLinkCreate, db: Session = Depends(get_db)):
+def add_supplier(item_id: int, data: SupplierLinkCreate, _w=_W, db: Session = Depends(get_db)):
     if not db.get(Item, item_id):
         raise HTTPException(404, "Item not found")
     link = SupplierLink(item_id=item_id, **data.model_dump())
@@ -201,7 +266,7 @@ def add_supplier(item_id: int, data: SupplierLinkCreate, db: Session = Depends(g
 
 
 @router.delete("/{item_id}/suppliers/{link_id}", status_code=204)
-def delete_supplier(item_id: int, link_id: int, db: Session = Depends(get_db)):
+def delete_supplier(item_id: int, link_id: int, _w=_W, db: Session = Depends(get_db)):
     link = db.query(SupplierLink).filter(
         SupplierLink.id == link_id, SupplierLink.item_id == item_id
     ).first()
@@ -216,6 +281,7 @@ def set_item_location(
     item_id: int,
     location_id: int,
     qty: float = Query(0.0),
+    _w=_W,
     db: Session = Depends(get_db),
 ):
     if not db.get(Item, item_id):
@@ -237,7 +303,7 @@ def set_item_location(
 
 
 @router.delete("/{item_id}/locations/{location_id}", response_model=ItemOut)
-def remove_item_location(item_id: int, location_id: int, db: Session = Depends(get_db)):
+def remove_item_location(item_id: int, location_id: int, _w=_W, db: Session = Depends(get_db)):
     il = (
         db.query(ItemLocation)
         .filter(ItemLocation.item_id == item_id, ItemLocation.location_id == location_id)
@@ -253,6 +319,7 @@ def remove_item_location(item_id: int, location_id: int, db: Session = Depends(g
 def create_transaction(
     item_id: int,
     data: TransactionCreate,
+    _w=_W,
     db: Session = Depends(get_db),
     username: Optional[str] = Depends(_optional_username),
 ):
@@ -279,14 +346,22 @@ def create_transaction(
     db.add(tx)
     db.commit()
     db.refresh(tx)
+    cat = item.category.name if item.category else ""
+    low = item.quantity <= item.min_quantity and item.min_quantity > 0
     if item.ha_exposed:
         try:
             from .. import ha_service
-            cat = item.category.name if item.category else ""
-            low = item.quantity <= item.min_quantity and item.min_quantity > 0
             ha_service.push_item_state(item.id, item.name, item.quantity, item.unit_name, cat, low)
         except Exception:
             pass
+    try:
+        from .. import mqtt_service
+        if item.mqtt_exposed:
+            mqtt_service.publish_item_state(item.id, item.name, item.quantity, item.unit_name, cat)
+        if mqtt_service._is_module_mqtt_enabled(db, "transactions"):
+            mqtt_service.publish_transaction_event(item.id, item.name, tx.transaction_type, tx.quantity_change, tx.created_by or "")
+    except Exception:
+        pass
     return tx
 
 
@@ -330,7 +405,7 @@ def list_components(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{item_id}/components", status_code=201)
-def add_component(item_id: int, body: dict, db: Session = Depends(get_db)):
+def add_component(item_id: int, body: dict, _w=_W, db: Session = Depends(get_db)):
     item = db.get(Item, item_id)
     if not item or not item.is_assembly:
         raise HTTPException(400, "Item is not an assembly")
@@ -357,7 +432,7 @@ def add_component(item_id: int, body: dict, db: Session = Depends(get_db)):
 
 
 @router.delete("/{item_id}/components/{comp_id}", status_code=204)
-def remove_component(item_id: int, comp_id: int, db: Session = Depends(get_db)):
+def remove_component(item_id: int, comp_id: int, _w=_W, db: Session = Depends(get_db)):
     ac = db.query(AssemblyComponent).filter(
         AssemblyComponent.assembly_id == item_id,
         AssemblyComponent.id == comp_id,
@@ -369,7 +444,7 @@ def remove_component(item_id: int, comp_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{item_id}/build")
-def build_assembly(item_id: int, db: Session = Depends(get_db)):
+def build_assembly(item_id: int, _w=_W, db: Session = Depends(get_db)):
     """Build 1x assembly: deduct components, increment assembly stock, log transactions."""
     assembly = db.get(Item, item_id)
     if not assembly or not assembly.is_assembly:
@@ -413,10 +488,10 @@ def build_assembly(item_id: int, db: Session = Depends(get_db)):
     return {"built": 1, "assembly_qty": assembly.quantity}
 
 
-# ── Merge ─────────────────────────────────────────────────────────────────────
+# ── Merge ───────────────────────────────────────────────────────────────────────────────────
 
 @router.post("/{primary_id}/merge")
-def merge_items(primary_id: int, body: dict, db: Session = Depends(get_db)):
+def merge_items(primary_id: int, body: dict, _w=_W, db: Session = Depends(get_db)):
     """Merge source item into primary: re-parent all relations, sum quantities, delete source."""
     import json as _json
     source_id = body.get("source_id")
@@ -447,7 +522,6 @@ def merge_items(primary_id: int, body: dict, db: Session = Depends(get_db)):
         pass
 
     # 3. Merge item_locations (with optional location_map overrides)
-    # location_map: {str(source_location_id): target_location_id_on_primary}
     raw_map = body.get("location_map", {})
     location_map = {int(k): int(v) for k, v in raw_map.items() if v}
 
@@ -460,7 +534,6 @@ def merge_items(primary_id: int, body: dict, db: Session = Depends(get_db)):
                 (primary_locs[target_loc_id].quantity or 0) + (il.quantity or 0), 6)
             db.delete(il)
         else:
-            # Adopt: redirect to target location (may be same or remapped)
             il.item_id = primary_id
             if target_loc_id != il.location_id:
                 il.location_id = target_loc_id

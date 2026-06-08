@@ -1,10 +1,5 @@
 # Makerspace ERP
 
-This was vibe codes by me and Claude because I couldn't find an ERP solution that free, open source and actually worked how I wanted.
-
-For feedback, feature requests and to see whats in progress checkout https://discord.gg/MSwYkzRKU
-
-
 A self-hosted inventory and asset management system for home makerspaces. Single-file frontend, FastAPI + SQLite backend, runs as a systemd service.
 
 **Current version: ALPHA v1.4.13**
@@ -236,6 +231,63 @@ A custom component scaffold is in `ha_integration/`. Work-in-progress for a full
 
 ---
 
+## File Structure
+
+```
+makerspace-erp/
+├── backend/                  # FastAPI application
+│   ├── main.py               # App entry point, serves frontend
+│   ├── models.py             # SQLAlchemy ORM models
+│   ├── schemas.py            # Pydantic schemas
+│   ├── auth.py               # JWT + bcrypt auth helpers
+│   ├── database.py           # SQLAlchemy engine / session
+│   ├── mqtt_service.py       # MQTT client + scale globals
+│   ├── ha_service.py         # HA REST push service
+│   ├── requirements.txt
+│   └── routers/
+│       ├── items.py          # Items + merge endpoint
+│       ├── locations.py
+│       ├── categories.py
+│       ├── transactions.py
+│       ├── kits.py
+│       ├── barcode.py
+│       ├── category_fields.py
+│       ├── settings.py       # Settings + asset upload endpoint
+│       ├── scale_router.py
+│       ├── auth_router.py
+│       └── users_router.py
+├── frontend/
+│   └── index.html            # Single-file SPA (~370 KB)
+├── migrations/               # SQL upgrade scripts for existing installs
+├── ha_integration/           # Home Assistant custom component (WIP)
+├── data/
+│   ├── uploads/              # Uploaded images (gitignored except .gitkeep)
+│   │   └── branding/         # Logo and favicon uploads
+├── makerspace-erp.service    # systemd unit file
+├── setup.sh                  # Automated installer
+├── CHANGELOG.md              # Version history
+└── SERVER_SETUP.md           # Proxmox VM setup guide
+```
+
+---
+
+## Backup
+
+The entire application state is in one file:
+
+```bash
+cp /opt/makerspace-erp/data/makerspace.db ~/makerspace-backup-$(date +%Y%m%d).db
+```
+
+To also back up uploaded images (logos, favicons, item photos):
+
+```bash
+tar -czf ~/makerspace-backup-$(date +%Y%m%d).tar.gz \
+  /opt/makerspace-erp/data/makerspace.db \
+  /opt/makerspace-erp/data/uploads/
+```
+
+---
 
 ## Troubleshooting
 

@@ -7,6 +7,7 @@ Endpoints:
   DELETE /api/categories/{cat_id}/fields/{field_id}
   GET    /api/items/{item_id}/field-values
   POST   /api/items/{item_id}/field-values   (bulk upsert)
+  GET    /api/field-badges                   (show_in_list values for all items)
 """
 from __future__ import annotations
 from typing import List, Optional
@@ -18,7 +19,8 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Category, CategoryField, Item, ItemFieldValue
 
-router = APIRouter(tags=["custom-fields"])
+from ..auth import get_current_user
+router = APIRouter(tags=["custom-fields"], dependencies=[Depends(get_current_user)])
 
 
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
@@ -29,6 +31,7 @@ class FieldCreate(BaseModel):
     field_options: Optional[str] = None   # JSON string e.g. '["Red","Blue"]'
     required: bool = False
     sort_order: int = 0
+    show_in_list: bool = False
 
 class FieldUpdate(BaseModel):
     field_name: Optional[str] = None
@@ -36,6 +39,7 @@ class FieldUpdate(BaseModel):
     field_options: Optional[str] = None
     required: Optional[bool] = None
     sort_order: Optional[int] = None
+    show_in_list: Optional[bool] = None
 
 class FieldOut(BaseModel):
     id: int
@@ -45,6 +49,7 @@ class FieldOut(BaseModel):
     field_options: Optional[str] = None
     required: bool
     sort_order: int
+    show_in_list: bool = False
     class Config:
         from_attributes = True
 
@@ -122,7 +127,6 @@ def get_field_values(item_id: int, db: Session = Depends(get_db)):
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(404, "Item not found")
-    # Return values joined with field metadata so the client has all it needs
     values = (
         db.query(ItemFieldValue)
         .filter(ItemFieldValue.item_id == item_id)
@@ -145,14 +149,33 @@ def save_field_values(item_id: int, body: List[FieldValueIn], db: Session = Depe
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(404, "Item not found")
-    # Delete existing values for the submitted field_ids
     field_ids = [v.field_id for v in body]
     db.query(ItemFieldValue).filter(
         ItemFieldValue.item_id == item_id,
         ItemFieldValue.field_id.in_(field_ids),
     ).delete(synchronize_session=False)
-    # Insert new values (skip blank ones)
     for v in body:
         if v.value is not None and v.value != "":
             db.add(ItemFieldValue(item_id=item_id, field_id=v.field_id, value=v.value))
     db.commit()
+
+
+# ── Field badges (show_in_list values for all items) ─────────────────────────
+
+@router.get("/api/field-badges")
+def get_all_field_badges(db: Session = Depends(get_db)):
+    """Returns {item_id: [{name, value, type}]} for all show_in_list fields."""
+    rows = (
+        db.query(ItemFieldValue, CategoryField)
+        .join(CategoryField, ItemFieldValue.field_id == CategoryField.id)
+        .filter(CategoryField.show_in_list == True)
+        .all()
+    )
+    result: dict = {}
+    for fv, field in rows:
+        result.setdefault(fv.item_id, []).append({
+            "name": field.field_name,
+            "value": fv.value,
+            "type": field.field_type,
+        })
+    return result

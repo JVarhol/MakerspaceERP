@@ -6,7 +6,8 @@ from ..database import get_db
 from ..models import Transaction
 from ..schemas import TransactionOut
 
-router = APIRouter(prefix="/api/transactions", tags=["transactions"])
+from ..auth import get_current_user
+router = APIRouter(prefix="/api/transactions", tags=["transactions"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=List[TransactionOut])

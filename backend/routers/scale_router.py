@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import AppSetting
 
-router = APIRouter(prefix="/api/scale", tags=["scale"])
+from ..auth import get_current_user
+router = APIRouter(prefix="/api/scale", tags=["scale"], dependencies=[Depends(get_current_user)])
 
 
 def _get_cfg(db: Session) -> dict:
@@ -48,6 +49,10 @@ def get_reading(db: Session = Depends(get_db)):
         "state_topic":   f"{base}/scale/state",
         "enabled":       cfg.get("enabled", False),
         "connected":     status["connected"],
+        # Debug: actual subscribed topic and connection state inside mqtt_service
+        "_subscribed_topic": mqtt_service._scale_topic,
+        "_scale_mode":       mqtt_service._scale_mode,
+        "_connected":        mqtt_service._connected,
     }
 
 
@@ -65,9 +70,12 @@ def set_tare(body: dict, db: Session = Depends(get_db)):
 
 @router.post("/publish-discovery")
 def publish_discovery():
-    """Publish HA number entity discovery for the scale."""
+    """Publish HA number entity discovery for the scale.
+    Uses reset=True to clear the old entity first, preventing stale
+    command_topic issues that require an HA reload to resolve.
+    """
     from .. import mqtt_service
-    ok = mqtt_service.publish_scale_discovery()
+    ok = mqtt_service.publish_scale_discovery(reset=True)
     return {"status": "published" if ok else "not_connected"}
 
 
@@ -78,9 +86,7 @@ def configure_scale(db: Session = Depends(get_db)):
     cfg = _get_cfg(db)
     if cfg.get("enabled"):
         mqtt_service.configure_scale(
-            mode  = cfg.get("mode", "ha_entity"),
-            topic = cfg.get("topic", ""),
-            unit  = cfg.get("unit", "g"),
+        unit  = cfg.get("unit", "g"),
         )
         status = mqtt_service.get_status()
         base   = status.get("base_topic", "makerspace")
