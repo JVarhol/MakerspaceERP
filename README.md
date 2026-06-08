@@ -2,7 +2,7 @@
 
 A self-hosted inventory and asset management system for home makerspaces. Single-file frontend, FastAPI + SQLite backend, runs as a systemd service.
 
-**Current version: ALPHA v1.4.13**
+**Current version: ALPHA v1.4.64**
 
 ---
 
