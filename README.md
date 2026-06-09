@@ -64,7 +64,7 @@ For Proxmox VM setup, see [SERVER_SETUP.md](SERVER_SETUP.md).
 Run as root on a fresh Debian/Ubuntu machine:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/makerspace-erp.git
+git clone https://github.com/JVarhol/makerspaceERP.git
 cd makerspace-erp
 sudo bash setup.sh
 ```
