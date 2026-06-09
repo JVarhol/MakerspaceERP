@@ -4,6 +4,15 @@ A self-hosted inventory and asset management system for home makerspaces. Single
 
 **Current version: ALPHA v1.4.64**
 
+Come chat, see new development and report bugs: https://discord.gg/MSwYkzRKU
+
+*Not compatible with bcrypt 4.0*
+You may get password not valid prompt for the default user name and pass use:
+```bash
+sudo /opt/makerspace-erp/venv/bin/pip install "bcrypt==3.2.2"
+sudo systemctl restart makerspace-erp 
+```
+
 ---
 
 ## Features
