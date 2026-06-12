@@ -2,16 +2,7 @@
 
 A self-hosted inventory and asset management system for home makerspaces. Single-file frontend, FastAPI + SQLite backend, runs as a systemd service.
 
-**Current version: ALPHA v1.4.64**
-
-Come chat, see new development and report bugs: https://discord.gg/MSwYkzRKU
-
-*Not compatible with bcrypt 4.0*
-You may get password not valid prompt for the default user name and pass use:
-```bash
-sudo /opt/makerspace-erp/venv/bin/pip install "bcrypt==3.2.2"
-sudo systemctl restart makerspace-erp 
-```
+**Current version: ALPHA v1.6.55**
 
 ---
 
@@ -33,13 +24,30 @@ sudo systemctl restart makerspace-erp
 - BOM management with build button that deducts components
 
 ### Assets
-- Check-out/return, status tracking, photos, asset tags
+- Check-out/return with optional duration picker and booking conflict validation, status tracking, photos, asset tags
+- **Bookings** — reserve assets in advance; confirmed bookings block conflicting checkouts
+- **Certifications** — require users to be certified on an asset before they can book or check it out. Certification Manager page for admins and self-view for users.
+- **Incident Log** — log and track asset incidents with severity and resolution status
+- **Maintenance** — schedule and record maintenance events per asset
+- **LOTO** — lockout/tagout records linked to assets, with printable paperwork
 
 ### Purchase Orders
 - Multi-line POs with per-line receiving
+- **Purchase Requests** — users submit item requests; staff/admin approve or deny. Approved requests convert to POs; POs marked as purchased auto-generate an invoice.
 
 ### Projects
+- Kanban project board (5 columns: Planning, Active, On Hold, Complete, Archived)
+- Full-page project detail with per-project 4-column task kanban (To Do, In Progress, Review, Done)
 - BOM management, cost estimator (materials + labor + markup), invoice generator
+
+### Invoices & Quotes
+- Create invoices and quotes from projects or standalone; line items with markup; tax percentage; printable PDF view
+
+### Teams
+- Named teams with color; assign members with roles; used for task assignment and notifications
+
+### Member Check-In
+- Track who is currently in the space. Members check in/out via their member ID. Login and logout prompts offer quick check-in/out. Capacity limit configurable by admins.
 
 ### Integrations
 - **MQTT** — bidirectional Home Assistant auto-discovery, TLS support, scale entity
@@ -50,6 +58,8 @@ sudo systemctl restart makerspace-erp
 
 ### Users & Auth
 - JWT auth, per-section permissions, bcrypt passwords, login rate limiting
+- **Three roles**: admin (full access), staff (elevated defaults, configurable), user (restricted defaults, configurable)
+- **Permission profile templates** — define reusable permission sets to quickly configure new users
 
 ### Reports & UI
 - Inventory snapshots, usage trends, printable labels
@@ -73,7 +83,7 @@ For Proxmox VM setup, see [SERVER_SETUP.md](SERVER_SETUP.md).
 Run as root on a fresh Debian/Ubuntu machine:
 
 ```bash
-git clone https://github.com/jvarhol/makerspace-erp.git
+git clone https://github.com/YOUR_USERNAME/makerspace-erp.git
 cd makerspace-erp
 sudo bash setup.sh
 ```
@@ -155,20 +165,18 @@ sudo systemctl restart makerspace-erp
 
 ### Database migrations
 
-Check `migrations/` for any new SQL files since your last update and run the ones you haven't applied:
+Run any migration scripts in `migrations/` that you haven't applied yet. Run them in version order:
 
 ```bash
-sqlite3 /opt/makerspace-erp/data/makerspace.db < migrations/migrate_vXXX.sql
+sudo bash /opt/makerspace-erp/migrations/migrate_v1467.sh   # v1.4.67+: locations icon, services, invoices
+sudo bash /opt/makerspace-erp/migrations/migrate_v148.sh    # v1.4.8+:  teams, notifications, purchase requests, tasks
+sudo bash /opt/makerspace-erp/migrations/migrate_v158.sh    # v1.5.8+:  asset bookings, certifications, incidents
+sudo bash /opt/makerspace-erp/migrations/migrate_v160.sh    # v1.6.0+:  member check-in, member_id on users
 ```
 
-#### v1.4.x migration (run once if upgrading from v1.3.x)
+Each script is idempotent — running it twice will not corrupt the database.
 
-```bash
-sqlite3 /opt/makerspace-erp/data/makerspace.db "ALTER TABLE items ADD COLUMN spool_empty_weight REAL;"
-sqlite3 /opt/makerspace-erp/data/makerspace.db "ALTER TABLE items ADD COLUMN unit_weight REAL;"
-```
-
-Also create the branding uploads directory if it doesn't exist:
+Also ensure the uploads directory exists:
 
 ```bash
 sudo mkdir -p /opt/makerspace-erp/data/uploads/branding
@@ -244,38 +252,51 @@ A custom component scaffold is in `ha_integration/`. Work-in-progress for a full
 
 ```
 makerspace-erp/
-├── backend/                  # FastAPI application
-│   ├── main.py               # App entry point, serves frontend
-│   ├── models.py             # SQLAlchemy ORM models
-│   ├── schemas.py            # Pydantic schemas
-│   ├── auth.py               # JWT + bcrypt auth helpers
-│   ├── database.py           # SQLAlchemy engine / session
-│   ├── mqtt_service.py       # MQTT client + scale globals
-│   ├── ha_service.py         # HA REST push service
+├── backend/                      # FastAPI application
+│   ├── main.py                   # App entry point, serves frontend
+│   ├── models.py                 # SQLAlchemy ORM models
+│   ├── schemas.py                # Pydantic schemas
+│   ├── auth.py                   # JWT + bcrypt auth helpers
+│   ├── database.py               # SQLAlchemy engine / session
+│   ├── notify_helpers.py         # Notification helpers
+│   ├── mqtt_service.py           # MQTT client + scale globals
+│   ├── ha_service.py             # HA REST push service
 │   ├── requirements.txt
 │   └── routers/
-│       ├── items.py          # Items + merge endpoint
+│       ├── items.py              # Items + merge endpoint
 │       ├── locations.py
 │       ├── categories.py
 │       ├── transactions.py
 │       ├── kits.py
 │       ├── barcode.py
 │       ├── category_fields.py
-│       ├── settings.py       # Settings + asset upload endpoint
+│       ├── settings.py           # Settings + branding upload
 │       ├── scale_router.py
 │       ├── auth_router.py
-│       └── users_router.py
+│       ├── users_router.py
+│       ├── invoices_router.py    # Invoices + quotes
+│       ├── services_router.py    # Billable services catalog
+│       ├── project_tasks_router.py
+│       ├── asset_extras_router.py  # Bookings, certs, incidents
+│       ├── checkin_router.py     # Member check-in/out
+│       ├── loto_router.py        # Lockout/tagout records
+│       └── maintenance_router.py
 ├── frontend/
-│   └── index.html            # Single-file SPA (~370 KB)
-├── migrations/               # SQL upgrade scripts for existing installs
-├── ha_integration/           # Home Assistant custom component (WIP)
+│   └── index.html                # Single-file SPA (~16,000 lines)
+├── migrations/                   # SQL upgrade scripts for existing installs
+│   ├── migrate_v1467.sh          # Adds locations icon, services, invoices
+│   ├── migrate_v148.sh           # Teams, notifications, permissions, purchase requests, tasks
+│   ├── migrate_v158.sh           # Asset bookings, certifications, incidents
+│   └── migrate_v160.sh           # Member check-in, member_id on users
+├── ha_integration/               # Home Assistant custom component (WIP)
 ├── data/
-│   ├── uploads/              # Uploaded images (gitignored except .gitkeep)
-│   │   └── branding/         # Logo and favicon uploads
-├── makerspace-erp.service    # systemd unit file
-├── setup.sh                  # Automated installer
-├── CHANGELOG.md              # Version history
-└── SERVER_SETUP.md           # Proxmox VM setup guide
+│   ├── uploads/                  # Uploaded images (gitignored — see .gitkeep)
+│   │   └── branding/             # Logo and favicon uploads
+├── makerspace-erp.service        # systemd unit file
+├── setup.sh                      # Automated installer
+├── CHANGELOG.md                  # Version history
+├── USER_GUIDE.md                 # End-user documentation
+└── SERVER_SETUP.md               # Proxmox VM setup guide
 ```
 
 ---

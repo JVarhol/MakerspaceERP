@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
 
 from ..database import get_db
-from ..models import Location, ItemLocation
+from ..models import Location, ItemLocation, LocationMapImage
 from ..schemas import LocationCreate, LocationUpdate, LocationOut
 
 from ..auth import get_current_user, require_permission, can
@@ -95,3 +96,28 @@ def delete_location(loc_id: int, _w=_W, db: Session = Depends(get_db)):
         pass
     db.delete(loc)
     db.commit()
+
+class MapImageBody(BaseModel):
+    image_data: str = None  # base64 data URL or None to clear
+
+
+@router.get("/{loc_id}/map-image")
+def get_map_image(loc_id: int, db: Session = Depends(get_db)):
+    img = db.query(LocationMapImage).filter(LocationMapImage.location_id == loc_id).first()
+    return {"image_data": img.image_data if img else None}
+
+
+@router.put("/{loc_id}/map-image")
+def set_map_image(loc_id: int, body: MapImageBody, _w=_W, db: Session = Depends(get_db)):
+    img = db.query(LocationMapImage).filter(LocationMapImage.location_id == loc_id).first()
+    if body.image_data is None:
+        if img:
+            db.delete(img)
+    else:
+        if img:
+            img.image_data = body.image_data
+        else:
+            img = LocationMapImage(location_id=loc_id, image_data=body.image_data)
+            db.add(img)
+    db.commit()
+    return {"ok": True}

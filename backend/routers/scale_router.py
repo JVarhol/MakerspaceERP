@@ -79,6 +79,18 @@ def publish_discovery():
     return {"status": "published" if ok else "not_connected"}
 
 
+@router.post("/active")
+def set_scale_active(body: dict):
+    """Notify MQTT that the scale dialog is open (active=true) or closed (active=false).
+    Publishes {base}/scale/active with payload 'true' or 'false' (non-retained).
+    The ERP frontend calls this when the scale modal opens/closes.
+    """
+    from .. import mqtt_service
+    active = bool(body.get("active", False))
+    ok = mqtt_service.publish_scale_active(active)
+    return {"ok": ok, "active": active}
+
+
 @router.post("/configure")
 def configure_scale(db: Session = Depends(get_db)):
     """Re-subscribe scale topic after settings change without restart."""

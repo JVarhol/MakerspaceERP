@@ -16,8 +16,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Kit, KitItem, Item, Transaction
-from ..schemas import KitCreate, KitUpdate, KitOut, KitItemCreate, KitItemOut
+from ..models import Kit, KitItem, Item, Transaction, ItemLocation
+from ..schemas import KitCreate, KitUpdate, KitOut, KitItemCreate, KitItemOut, KitRestockBody
 
 from ..auth import get_current_user, require_permission
 router = APIRouter(tags=["kits"], dependencies=[Depends(get_current_user)])
@@ -133,13 +133,20 @@ def remove_kit_item(kit_id: int, ki_id: int, _w=_W, db: Session = Depends(get_db
 
 
 @router.post("/api/kits/{kit_id}/restock", status_code=200)
-def restock_kit(kit_id: int, _w=_W, db: Session = Depends(get_db)):
-    """Add one kit's worth of all components to inventory."""
+def restock_kit(kit_id: int, body: KitRestockBody = None, _w=_W, db: Session = Depends(get_db)):
+    """Add one kit's worth of all components to inventory.
+
+    Optional body: { location_overrides: { "<item_id>": <location_id>, ... } }
+    When a location_id is provided for an item, that ItemLocation's quantity is also incremented.
+    """
     kit = db.get(Kit, kit_id)
     if not kit:
         raise HTTPException(404, "Kit not found")
     if not kit.kit_items:
         raise HTTPException(400, "Kit has no components")
+    overrides = {}
+    if body and body.location_overrides:
+        overrides = {int(k): int(v) for k, v in body.location_overrides.items()}
     updated = []
     for ki in kit.kit_items:
         item = db.get(Item, ki.item_id)
@@ -147,12 +154,24 @@ def restock_kit(kit_id: int, _w=_W, db: Session = Depends(get_db)):
             continue
         before = item.quantity
         item.quantity = round(before + ki.quantity, 6)
+        # Update per-location quantity if a location was specified
+        loc_id = overrides.get(ki.item_id)
+        if loc_id:
+            il = db.query(ItemLocation).filter(
+                ItemLocation.item_id == ki.item_id,
+                ItemLocation.location_id == loc_id,
+            ).first()
+            if il:
+                il.quantity = round((il.quantity or 0) + ki.quantity, 6)
+            else:
+                db.add(ItemLocation(item_id=ki.item_id, location_id=loc_id, quantity=ki.quantity))
         db.add(Transaction(
             item_id=item.id,
             transaction_type="add",
             quantity_change=ki.quantity,
             quantity_before=before,
             quantity_after=item.quantity,
+            to_location_id=loc_id or None,
             notes=f"Kit restocked: {kit.name}",
         ))
         updated.append({"item_id": item.id, "added": ki.quantity})
@@ -172,8 +191,17 @@ def _kit_out(kit: Kit) -> dict:
     )
 
 def _ki_out(ki: KitItem) -> KitItemOut:
+    locs = []
+    if ki.item:
+        for il in ki.item.locations:
+            try:
+                from ..schemas import ItemLocationOut
+                locs.append(ItemLocationOut.model_validate(il))
+            except Exception:
+                pass
     return KitItemOut(
         id=ki.id, item_id=ki.item_id, quantity=ki.quantity,
         item_name=ki.item.name if ki.item else None,
         item_unit=ki.item.unit_name if ki.item else None,
+        item_locations=locs,
     )

@@ -729,6 +729,69 @@ def remove_po_discovery(po_id: int):
         pass
 
 
+def publish_scale_active(active: bool) -> bool:
+    """Publish whether the ERP scale dialog is currently open.
+
+    Topic: {base}/scale/active  — payload 'true' or 'false', non-retained.
+    Home Assistant can use this in an automation to know when to watch the scale.
+    """
+    if not _connected or not _client:
+        return False
+    base = _config.get("base_topic", "makerspace")
+    try:
+        _client.publish(f"{base}/scale/active", "true" if active else "false", retain=False)
+        log.info(f"Scale active published: {active}")
+        return True
+    except Exception as e:
+        log.warning(f"Scale active publish failed: {e}")
+        return False
+
+
+def publish_locate_item(item_id: int, item_name: str, bin_id: str, location_path: str) -> bool:
+    """Publish a locate request for an item.
+
+    Two topics:
+      {base}/locate/bin_id        → bin ID string (e.g. "A3-B2")
+      {base}/locate/location_path → full path string (e.g. "Shelf A / Row 2 / Bin 3")
+    Also publishes attributes with full context.
+    Returns True if published successfully.
+    """
+    if not _connected or not _client:
+        return False
+    base = _config.get("base_topic", "makerspace")
+    try:
+        _client.publish(f"{base}/locate/bin_id", bin_id or "", retain=False)
+        _client.publish(f"{base}/locate/location_path", location_path or "", retain=False)
+        _client.publish(f"{base}/locate/attributes",
+                        json.dumps({"item_id": item_id, "item_name": item_name,
+                                    "bin_id": bin_id or "", "location_path": location_path or ""}),
+                        retain=False)
+        log.info(f"Locate published: item={item_id} bin={bin_id} path={location_path}")
+        return True
+    except Exception as e:
+        log.warning(f"Locate publish failed: {e}")
+        return False
+
+
+def publish_locate_searching(active: bool, item_id: int = None, item_name: str = "") -> bool:
+    """Publish/clear the locate/searching topic.
+
+    {base}/locate/searching → JSON {"active": true/false, "item_id": ..., "item_name": ...}
+    Uses retain=True so the state persists until explicitly cleared.
+    """
+    if not _connected or not _client:
+        return False
+    base = _config.get("base_topic", "makerspace")
+    try:
+        payload = json.dumps({"active": active, "item_id": item_id, "item_name": item_name or ""})
+        _client.publish(f"{base}/locate/searching", payload, retain=True)
+        log.info(f"Locate searching: active={active} item={item_id}")
+        return True
+    except Exception as e:
+        log.warning(f"Locate searching publish failed: {e}")
+        return False
+
+
 def publish_transaction_event(item_id: int, item_name: str, tx_type: str, qty_change: float, created_by: str = ""):
     """Publish last-transaction sensor (no discovery, event-style)."""
     if not _connected or not _client:

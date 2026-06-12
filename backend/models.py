@@ -41,6 +41,7 @@ class Location(Base):
     location_type = Column(String, default="bin")
     is_restricted = Column(Boolean, default=False)
     bin_id = Column(String, nullable=True)
+    icon = Column(String, nullable=True)
 
     parent = relationship("Location", remote_side=[id], backref="children")
     item_locations = relationship("ItemLocation", back_populates="location")
@@ -77,6 +78,8 @@ class Item(Base):
     is_assembly   = Column(Boolean, default=False)
     mqtt_exposed  = Column(Boolean, default=False)
     ha_exposed    = Column(Boolean, default=False)
+    is_hazmat     = Column(Boolean, default=False)
+    sds_url       = Column(String, nullable=True)   # path/URL to uploaded SDS PDF
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -96,9 +99,13 @@ class Project(Base):
     labor_hours = Column(Float, default=0.0)
     labor_rate  = Column(Float, default=0.0)
     markup_pct  = Column(Float, default=0.0)
+    assigned_to = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
-    items = relationship("ProjectItem", back_populates="project", cascade="all, delete-orphan")
+    items        = relationship("ProjectItem",    back_populates="project", cascade="all, delete-orphan")
+    time_entries = relationship("ProjectTimeEntry", back_populates="project", cascade="all, delete-orphan", order_by="ProjectTimeEntry.created_at.desc()")
+    tasks        = relationship("ProjectTask",      back_populates="project", cascade="all, delete-orphan", order_by="ProjectTask.position")
+    shares       = relationship("ProjectShare",     back_populates="project", cascade="all, delete-orphan")
 
 
 class ProjectItem(Base):
@@ -113,6 +120,18 @@ class ProjectItem(Base):
 
     project = relationship("Project", back_populates="items")
     item = relationship("Item")
+
+
+class ProjectShare(Base):
+    __tablename__ = "project_shares"
+    __table_args__ = (UniqueConstraint("project_id", "username"),)
+
+    id         = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    username   = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    project = relationship("Project", back_populates="shares")
 
 
 class ItemLocation(Base):
@@ -225,6 +244,9 @@ class Asset(Base):
     location  = relationship("Location")
     checkouts = relationship("AssetCheckout", back_populates="asset", cascade="all, delete-orphan")
     maintenance_schedules = relationship("AssetMaintenanceSchedule", back_populates="asset", cascade="all, delete-orphan")
+    bookings       = relationship("AssetBooking",       back_populates="asset", cascade="all, delete-orphan")
+    certifications = relationship("AssetCertification", back_populates="asset", cascade="all, delete-orphan")
+    incidents      = relationship("AssetIncident",      back_populates="asset", cascade="all, delete-orphan")
 
 
 class AssetCheckout(Base):
@@ -386,6 +408,7 @@ class User(Base):
     force_pw_change = Column(Boolean, default=False)
     preferences     = Column(Text, nullable=True)
     token_version   = Column(Integer, default=0, nullable=False)
+    member_id       = Column(String, unique=True, nullable=True, index=True)
     created_at      = Column(DateTime, server_default=func.now())
     last_login      = Column(DateTime, nullable=True)
 
@@ -396,3 +419,371 @@ class TokenBlocklist(Base):
 
     jti        = Column(String, primary_key=True)
     expires_at = Column(DateTime, nullable=False)
+
+
+class PullTicket(Base):
+    """A pick/pull ticket — requests to remove or move items from inventory."""
+    __tablename__ = "pull_tickets"
+
+    id            = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    ticket_number = Column(String, nullable=True, index=True)
+    # open | partial | completed | putback
+    status        = Column(String, default="open", nullable=False)
+    # out_of_inventory | move_location | assign_project
+    pull_type     = Column(String, default="out_of_inventory", nullable=False)
+    to_location_id = Column(Integer, ForeignKey("locations.id", ondelete="SET NULL"), nullable=True)
+    project_id    = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    notes         = Column(Text, nullable=True)
+    created_by    = Column(String, nullable=True)
+    created_at    = Column(DateTime, server_default=func.now())
+    completed_at  = Column(DateTime, nullable=True)
+
+    lines       = relationship("PullTicketLine", back_populates="ticket", cascade="all, delete-orphan")
+    to_location = relationship("Location", foreign_keys=[to_location_id])
+    project     = relationship("Project", foreign_keys=[project_id])
+
+
+class PullTicketLine(Base):
+    """Individual line item on a pull ticket."""
+    __tablename__ = "pull_ticket_lines"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    ticket_id        = Column(Integer, ForeignKey("pull_tickets.id", ondelete="CASCADE"), nullable=False)
+    item_id          = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
+    quantity_needed  = Column(Float, nullable=False, default=1.0)
+    quantity_pulled  = Column(Float, default=0.0)
+    from_location_id = Column(Integer, ForeignKey("locations.id", ondelete="SET NULL"), nullable=True)
+    # open | partial | pulled | putback
+    status           = Column(String, default="open", nullable=False)
+    notes            = Column(Text, nullable=True)
+
+    ticket        = relationship("PullTicket", back_populates="lines")
+    item          = relationship("Item")
+    from_location = relationship("Location", foreign_keys=[from_location_id])
+
+
+class ProjectTimeEntry(Base):
+    """Clock-in / clock-out or manually-added hours on a project."""
+    __tablename__ = "project_time_entries"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    project_id  = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    user        = Column(String, nullable=True)           # username who logged it
+    clock_in    = Column(DateTime, nullable=True)         # None for manual entries
+    clock_out   = Column(DateTime, nullable=True)         # None while active / manual
+    hours       = Column(Float, nullable=True)            # computed or manually set
+    description = Column(Text, nullable=True)             # what was worked on
+    created_at  = Column(DateTime, server_default=func.now())
+
+    project = relationship("Project", back_populates="time_entries")
+
+
+# ── Services ──────────────────────────────────────────────────────────────────
+
+class Service(Base):
+    """Billable services — fees, touch labor, etc."""
+    __tablename__ = "services"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    name             = Column(String, nullable=False)
+    category         = Column(String, default="other")   # fee | labor | materials | other
+    description      = Column(Text, nullable=True)
+    unit_price       = Column(Float, default=0.0)
+    default_markup_pct = Column(Float, default=0.0)
+    use_markup       = Column(Boolean, default=False)    # True = apply markup, False = straight cost
+    is_active        = Column(Boolean, default=True)
+    created_at       = Column(DateTime, server_default=func.now())
+
+
+# ── Invoices ──────────────────────────────────────────────────────────────────
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id             = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    project_id     = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    invoice_type   = Column(String, default="invoice")   # quote | invoice
+    status         = Column(String, default="draft")     # draft | sent | accepted | paid | void
+    invoice_number = Column(String, nullable=True)
+    client_name    = Column(String, nullable=True)
+    client_address = Column(Text, nullable=True)
+    invoice_date   = Column(String, nullable=True)
+    due_date       = Column(String, nullable=True)
+    notes          = Column(Text, nullable=True)
+    terms          = Column(Text, nullable=True)
+    tax_pct        = Column(Float, default=0.0)
+    created_at     = Column(DateTime, server_default=func.now())
+    sent_at        = Column(DateTime, nullable=True)
+    paid_at        = Column(DateTime, nullable=True)
+
+    project = relationship("Project")
+    lines   = relationship("InvoiceLine", back_populates="invoice",
+                           cascade="all, delete-orphan",
+                           order_by="InvoiceLine.sort_order")
+
+
+class InvoiceLine(Base):
+    __tablename__ = "invoice_lines"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    invoice_id  = Column(Integer, ForeignKey("invoices.id", ondelete="CASCADE"), nullable=False)
+    line_type   = Column(String, default="part")   # part | labor | service
+    description = Column(String, nullable=False, default="")
+    quantity    = Column(Float, default=1.0)
+    unit_price  = Column(Float, default=0.0)
+    markup_pct  = Column(Float, default=0.0)       # only applied when use_markup=True
+    use_markup  = Column(Boolean, default=False)   # False for labor lines
+    item_id     = Column(Integer, ForeignKey("items.id", ondelete="SET NULL"), nullable=True)
+    service_id  = Column(Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True)
+    sort_order  = Column(Integer, default=0)
+
+    invoice = relationship("Invoice", back_populates="lines")
+
+
+# ── Location map image ─────────────────────────────────────────────────────────
+# Added as a separate table so large base64 blobs don't bloat every location query
+
+class LocationMapImage(Base):
+    """Stores an optional background image for a shelf-map location."""
+    __tablename__ = "location_map_images"
+
+    location_id = Column(Integer, ForeignKey("locations.id", ondelete="CASCADE"), primary_key=True)
+    image_data  = Column(Text, nullable=True)   # base64 data-URI
+    updated_at  = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+# ── Purchase Requests ─────────────────────────────────────────────────────────
+
+class PurchaseRequest(Base):
+    __tablename__ = "purchase_requests"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    request_number  = Column(String, nullable=True, index=True)
+    # draft | pending_approval | approved | ordered | received | rejected | cancelled
+    status          = Column(String, default="draft")
+    supplier_id     = Column(Integer, ForeignKey("suppliers.id", ondelete="SET NULL"), nullable=True)
+    supplier_name   = Column(String, nullable=True)
+    requested_by    = Column(String, nullable=True)
+    approved_by     = Column(String, nullable=True)
+    purchased_by    = Column(String, nullable=True)
+    approved_at     = Column(DateTime, nullable=True)
+    purchased_at    = Column(DateTime, nullable=True)
+    notes           = Column(Text, nullable=True)
+    urgency         = Column(String, default="normal")   # low | normal | high | critical
+    created_at      = Column(DateTime, server_default=func.now())
+    updated_at      = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    supplier = relationship("Supplier")
+    lines    = relationship("PurchaseRequestLine", back_populates="request",
+                            cascade="all, delete-orphan", order_by="PurchaseRequestLine.id")
+
+
+class PurchaseRequestLine(Base):
+    __tablename__ = "purchase_request_lines"
+
+    id           = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    request_id   = Column(Integer, ForeignKey("purchase_requests.id", ondelete="CASCADE"), nullable=False)
+    item_id      = Column(Integer, ForeignKey("items.id", ondelete="SET NULL"), nullable=True)
+    description  = Column(String, nullable=False, default="")
+    quantity     = Column(Float, default=1.0)
+    unit_price   = Column(Float, nullable=True)
+    notes        = Column(Text, nullable=True)
+    # open | ordered | received | cancelled
+    line_status  = Column(String, default="open")
+
+    request = relationship("PurchaseRequest", back_populates="lines")
+    item    = relationship("Item")
+
+
+# ── Notifications / Alerts ────────────────────────────────────────────────────
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)   # None = broadcast to role
+    target_role = Column(String, nullable=True)   # e.g. "approver" — send to everyone with this role flag
+    title       = Column(String, nullable=False)
+    body        = Column(Text, nullable=True)
+    # info | warning | success | error
+    level       = Column(String, default="info")
+    # purchase_request | pull_ticket | system | general
+    source_type = Column(String, nullable=True)
+    source_id   = Column(Integer, nullable=True)
+    is_read     = Column(Boolean, default=False)
+    created_at  = Column(DateTime, server_default=func.now())
+
+
+# ── User Permission Profiles ──────────────────────────────────────────────────
+
+class UserPermissionProfile(Base):
+    """Named permission preset — apply to a user to bulk-set their permissions."""
+    __tablename__ = "user_permission_profiles"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    name        = Column(String, nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    role        = Column(String, default="user")   # user | manager
+    permissions = Column(Text, nullable=True)      # JSON — same shape as User.permissions
+    created_at  = Column(DateTime, server_default=func.now())
+
+
+# ── Location Map Images ───────────────────────────────────────────────────────
+
+
+class LotoRecord(Base):
+    __tablename__ = "loto_records"
+
+    id              = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    title           = Column(String, nullable=False)
+    asset_id        = Column(Integer, ForeignKey("assets.id", ondelete="SET NULL"), nullable=True)
+    machine_name    = Column(String, nullable=True)
+    machine_id      = Column(String, nullable=True)
+    location        = Column(String, nullable=True)
+    department      = Column(String, nullable=True)
+    status          = Column(String, default="draft")
+    procedure_steps = Column(Text, nullable=True)   # JSON list
+    energy_sources  = Column(Text, nullable=True)   # JSON list
+    ppe_required    = Column(Text, nullable=True)   # JSON list
+    authorized_by   = Column(String, nullable=True)
+    reviewed_by     = Column(String, nullable=True)
+    review_date     = Column(String, nullable=True)
+    notes           = Column(Text, nullable=True)
+    created_by      = Column(String, nullable=True)
+    created_at      = Column(DateTime, server_default=func.now())
+    updated_at      = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    asset    = relationship("Asset", foreign_keys=[asset_id])
+    lockouts = relationship("LotoLockout", back_populates="record", cascade="all, delete-orphan")
+
+
+class LotoLockout(Base):
+    __tablename__ = "loto_lockouts"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    record_id   = Column(Integer, ForeignKey("loto_records.id", ondelete="CASCADE"), nullable=False)
+    locked_by   = Column(String, nullable=False)
+    locked_at   = Column(DateTime, server_default=func.now())
+    released_at = Column(DateTime, nullable=True)
+    notes       = Column(Text, nullable=True)
+
+    record = relationship("LotoRecord", back_populates="lockouts")
+
+
+# ── Purchase Requests ─────────────────────────────────────────────────────────
+
+class Team(Base):
+    __tablename__ = "teams"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    name        = Column(String, nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    color       = Column(String, default="#6366f1")
+    created_at  = Column(DateTime, server_default=func.now())
+
+    members = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
+
+
+class TeamMember(Base):
+    __tablename__ = "team_members"
+
+    id      = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role    = Column(String, default="member")
+
+    team = relationship("Team", back_populates="members")
+    user = relationship("User")
+
+
+# ── Project Tasks (Kanban) ───────────────────��──────────────────────────────��─
+
+class ProjectTask(Base):
+    __tablename__ = "project_tasks"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    project_id  = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    title       = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status      = Column(String, default="todo")
+    priority    = Column(String, default="normal")
+    assignee    = Column(String, nullable=True)
+    team_id     = Column(Integer, ForeignKey("teams.id", ondelete="SET NULL"), nullable=True)
+    due_date    = Column(String, nullable=True)
+    color       = Column(String, nullable=True)
+    position    = Column(Integer, default=0)
+    created_by  = Column(String, nullable=True)
+    checklist   = Column(Text, nullable=True)   # JSON: [{text, done}, ...]
+    created_at  = Column(DateTime, server_default=func.now())
+    updated_at  = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    project = relationship("Project", back_populates="tasks")
+    team    = relationship("Team")
+
+
+# ── Asset Extras ────────────────────────────────────────────────────────────────
+
+class AssetBooking(Base):
+    """Time-slot reservation for a machine/asset."""
+    __tablename__ = "asset_bookings"
+
+    id       = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    asset_id = Column(Integer, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    username = Column(String, nullable=False)
+    title    = Column(String, nullable=True)    # purpose / project label
+    start_dt = Column(String, nullable=False)   # ISO 8601 datetime
+    end_dt   = Column(String, nullable=False)   # ISO 8601 datetime
+    notes    = Column(Text, nullable=True)
+    status   = Column(String, default="upcoming")  # upcoming / active / complete / cancelled
+    created_at = Column(DateTime, server_default=func.now())
+
+    asset = relationship("Asset", back_populates="bookings")
+
+
+class AssetCertification(Base):
+    """Records that a user is trained/certified on a specific asset."""
+    __tablename__ = "asset_certifications"
+    __table_args__ = (UniqueConstraint("asset_id", "username"),)
+
+    id           = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    asset_id     = Column(Integer, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    username     = Column(String, nullable=False)
+    certified_by = Column(String, nullable=True)
+    certified_at = Column(String, nullable=True)   # date string YYYY-MM-DD
+    expires_at   = Column(String, nullable=True)   # optional expiry
+    notes        = Column(Text, nullable=True)
+
+    asset = relationship("Asset", back_populates="certifications")
+
+
+class AssetIncident(Base):
+    """Incident / breakage log entry tied to an asset."""
+    __tablename__ = "asset_incidents"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    asset_id         = Column(Integer, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    reported_by      = Column(String, nullable=False)
+    incident_type    = Column(String, default="other")   # breakage / malfunction / near_miss / injury / other
+    severity         = Column(String, default="low")     # low / medium / high / critical
+    description      = Column(Text, nullable=False)
+    out_of_service   = Column(Boolean, default=False)
+    resolved         = Column(Boolean, default=False)
+    resolved_at      = Column(String, nullable=True)
+    resolved_by      = Column(String, nullable=True)
+    resolution_notes = Column(Text, nullable=True)
+    created_at       = Column(DateTime, server_default=func.now())
+
+    asset = relationship("Asset", back_populates="incidents")
+
+
+class MemberCheckIn(Base):
+    """Space check-in / check-out session for a member."""
+    __tablename__ = "member_checkins"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    username         = Column(String, nullable=False, index=True)
+    member_id        = Column(String, nullable=True)
+    checked_in_at    = Column(DateTime, nullable=False, server_default=func.now())
+    checked_out_at   = Column(DateTime, nullable=True)
+    duration_minutes = Column(Float, nullable=True)
+    notes            = Column(Text, nullable=True)

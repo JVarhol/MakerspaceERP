@@ -1,9 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import uuid
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from typing import List, Optional
 from difflib import SequenceMatcher
+
+UPLOADS_DIR = Path(__import__('os').getenv("UPLOADS_DIR", "/opt/makerspace-erp/data/uploads"))
+ITEMS_UPLOAD_DIR = UPLOADS_DIR / "items"
+ITEMS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp"}
+ALLOWED_PDF_TYPES   = {"application/pdf": ".pdf"}
 
 from ..database import get_db
 from ..models import Item, SupplierLink, ItemLocation, Location, ItemFieldValue, Transaction, AssemblyComponent, KitItem, ProjectItem
@@ -230,6 +239,17 @@ def update_item(item_id: int, data: ItemUpdate, _w=_W, db: Session = Depends(get
     db.commit()
     cat = item.category.name if item.category else ""
     low = item.quantity <= item.min_quantity and item.min_quantity > 0
+    # Fire low-stock notification when stock drops to or below reorder point
+    was_above = before > item.min_quantity if item.min_quantity and item.min_quantity > 0 else False
+    if low and was_above and data.quantity_change < 0:
+        try:
+            notify_role(db, "inventory",
+                        f"⚠️ Low Stock: {item.name}",
+                        f"Quantity dropped to {after} {item.unit_name or 'units'} (reorder at {item.min_quantity}).",
+                        level="warning", source_type="item", source_id=item_id)
+            db.commit()
+        except Exception:
+            pass
     if item.ha_exposed:
         try:
             from .. import ha_service
@@ -374,13 +394,29 @@ def list_item_transactions(
     from ..models import Transaction
     if not db.get(Item, item_id):
         raise HTTPException(404, "Item not found")
-    return (
+    txns = (
         db.query(Transaction)
         .filter(Transaction.item_id == item_id)
         .order_by(Transaction.created_at.desc())
         .limit(limit)
         .all()
     )
+    # Attach location names for richer display
+    loc_ids = set()
+    for t in txns:
+        if t.from_location_id: loc_ids.add(t.from_location_id)
+        if t.to_location_id:   loc_ids.add(t.to_location_id)
+    loc_map = {}
+    if loc_ids:
+        locs = db.query(Location).filter(Location.id.in_(loc_ids)).all()
+        loc_map = {l.id: l.name for l in locs}
+    results = []
+    for t in txns:
+        out = TransactionOut.model_validate(t)
+        out.from_location_name = loc_map.get(t.from_location_id) if t.from_location_id else None
+        out.to_location_name   = loc_map.get(t.to_location_id)   if t.to_location_id   else None
+        results.append(out)
+    return results
 
 
 # ── Assembly components ───────────────────────────────────────────────────────
@@ -593,18 +629,15 @@ def merge_items(primary_id: int, body: dict, _w=_W, db: Session = Depends(get_db
     qty_before = round(primary.quantity - source_qty, 6)
     db.add(Transaction(
         item_id=primary_id,
-        transaction_type="adjustment",
-        quantity_change=source_qty,
+               quantity_change=source_qty,
         quantity_before=qty_before,
         quantity_after=primary.quantity,
-        notes=f"Merged from: {source.name} (id {source_id})",
+        transaction_type="merge",
+        notes=f"Merged from item ID {source_id}",
+        created_by=_cu.username if hasattr(_cu, 'username') else None,
     ))
 
-    # 12. Delete source and commit
-    db.flush()
+    # 12. Delete source item
     db.delete(source)
     db.commit()
-    db.refresh(primary)
-
-    from ..schemas import ItemOut
-    return ItemOut.model_validate(primary)
+    return {"ok": True, "merged_qty": source_qty}

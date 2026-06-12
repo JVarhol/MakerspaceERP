@@ -253,6 +253,32 @@ def push_po_state(po_id: int, status: str, po_number: str = "", supplier: str = 
     }), daemon=True).start()
 
 
+def push_locate_item(item_id: int, item_name: str, bin_id: str, location_path: str) -> bool:
+    """Fire a locate event into Home Assistant.
+
+    Sets two input_text helpers (or any writable entity) via the States API:
+      sensor.makerspace_locate_bin_id
+      sensor.makerspace_locate_location_path
+    Returns True on success.
+    """
+    cfg = _get_cfg()
+    if not cfg:
+        return False
+    import threading as _t
+    attrs = {"item_id": item_id, "item_name": item_name,
+             "bin_id": bin_id or "", "location_path": location_path or "",
+             "icon": "mdi:map-search"}
+    ok = []
+    def _push():
+        r1 = _set_state(cfg, "sensor.makerspace_locate_bin_id", bin_id or "", {**attrs, "friendly_name": "Makerspace Locate: Bin ID"})
+        r2 = _set_state(cfg, "sensor.makerspace_locate_location_path", location_path or "", {**attrs, "friendly_name": "Makerspace Locate: Location Path"})
+        ok.append(r1 and r2)
+    t = _t.Thread(target=_push, daemon=True)
+    t.start()
+    t.join(timeout=5)
+    return bool(ok and ok[0])
+
+
 def push_all_modules(items_db_session) -> dict:
     """Bulk-push all HA-enabled modules. Returns counts."""
     db = items_db_session

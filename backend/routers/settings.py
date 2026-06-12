@@ -12,6 +12,8 @@ import json
 import os
 import uuid
 from pathlib import Path
+from typing import Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -225,4 +227,83 @@ def publish_dashboard_integration(db: Session = Depends(get_db)):
     mqtt_count = mqtt_service.publish_all_dashboard_widgets(db)
     ha_count   = ha_service.push_all_dashboard_widgets(db)
     return {"ok": True, "mqtt_published": mqtt_count, "ha_pushed": ha_count}
+
+
+@router.post("/api/locate/{item_id}")
+def locate_item(item_id: int, db: Session = Depends(get_db)):
+    """Publish a locate request for an item to MQTT and/or HA.
+
+    Publishes:
+      MQTT: {base}/locate/bin_id  and  {base}/locate/location_path
+      HA:   sensor.makerspace_locate_bin_id  and  sensor.makerspace_locate_location_path
+    """
+    from .. import mqtt_service, ha_service
+    from ..models import Item, ItemLocation, Location
+
+    item = db.get(Item, item_id)
+    if not item:
+        raise HTTPException(404, "Item not found")
+
+    # Build bin_id and location_path from the item's primary location
+    # (use the first location with the most stock, or just the first one)
+    il = (db.query(ItemLocation)
+            .filter(ItemLocation.item_id == item_id)
+            .order_by(ItemLocation.quantity.desc())
+            .first())
+    bin_id = ""
+    location_path = ""
+    if il and il.location:
+        loc: Location = il.location
+        bin_id = loc.bin_id or ""
+        parts = []
+        if loc.location_type:
+            parts.append(loc.location_type)
+        parts.append(loc.name)
+        if loc.bin_id:
+            parts.append(f"Bin: {loc.bin_id}")
+        location_path = " / ".join(parts)
+
+    mqtt_settings = _get(db, "mqtt") or {}
+    ha_settings   = _get(db, "ha") or {}
+
+    mqtt_ok = False
+    ha_ok   = False
+    if mqtt_settings.get("locate_enabled") and mqtt_service.get_status().get("connected"):
+        mqtt_ok = mqtt_service.publish_locate_item(item_id, item.name, bin_id, location_path)
+    if ha_settings.get("locate_enabled"):
+        ha_ok = ha_service.push_locate_item(item_id, item.name, bin_id, location_path)
+
+    return {
+        "ok": True,
+        "item_id": item_id,
+        "item_name": item.name,
+        "bin_id": bin_id,
+        "location_path": location_path,
+        "mqtt_published": mqtt_ok,
+        "ha_pushed": ha_ok,
+    }
+
+
+class LocateSearchingBody(BaseModel):
+    active: bool
+    item_id: Optional[int] = None
+    item_name: Optional[str] = ""
+
+
+@router.post("/api/locate/searching")
+def locate_searching(body: LocateSearchingBody, db: Session = Depends(get_db)):
+    """Publish or clear the locate/searching topic on MQTT.
+
+    Publishes {base}/locate/searching → JSON with active flag.
+    Called when user opens locate (active=true) and when modal closes (active=false).
+    """
+    from .. import mqtt_service
+
+    mqtt_settings = _get(db, "mqtt") or {}
+    if not (mqtt_settings.get("locate_enabled") and mqtt_service.get_status().get("connected")):
+        return {"ok": True, "published": False, "reason": "MQTT locate not enabled"}
+
+    ok = mqtt_service.publish_locate_searching(body.active, body.item_id, body.item_name or "")
+    return {"ok": True, "published": ok}
+
 

@@ -81,6 +81,12 @@ ADMIN_PERMISSIONS["settings"]            = True
 ADMIN_PERMISSIONS["users"]               = True
 ADMIN_PERMISSIONS["restricted_locations"] = {"read": True}
 
+# Staff: like a power-user — full read/write on most things, no users/settings by default
+STAFF_DEFAULT_PERMISSIONS = {**DEFAULT_USER_PERMISSIONS,
+    "purchase_approver": True,
+    "restricted_locations": {"read": True},
+}
+
 
 # ── Password helpers ──────────────────────────────────────────────────────────
 

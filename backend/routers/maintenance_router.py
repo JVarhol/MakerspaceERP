@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from ..database import get_db
 from ..models import Asset, AssetMaintenanceSchedule, AssetMaintenanceLog, AppSetting
+from ..notify_helpers import notify_role
 
 from ..auth import get_current_user
 router = APIRouter(tags=["maintenance"], dependencies=[Depends(get_current_user)])
@@ -181,6 +182,13 @@ def complete_schedule(aid: int, mid: int, body: CompleteBody, db: Session = Depe
         notes=body.notes,
     )
     db.add(log)
+
+    # Notify that maintenance was completed
+    asset = db.get(Asset, aid)
+    notify_role(db, "assets",
+                f"🔧 Maintenance Completed: {s.task_name}",
+                f"Asset: {asset.name if asset else aid}. Done by: {body.done_by or 'unknown'}.",
+                level="success", source_type="asset", source_id=aid)
 
     # Calculate next due date for recurring schedules
     if s.interval_days:

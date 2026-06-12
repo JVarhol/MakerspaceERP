@@ -7,7 +7,7 @@ Router: User management (admin only)
   DELETE /api/users/{uid}
 """
 from __future__ import annotations
-import json
+import json, random
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -15,10 +15,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User
+from ..models import User, UserPermissionProfile
 from ..auth import (
     hash_password, require_admin, get_permissions,
-    DEFAULT_USER_PERMISSIONS, ADMIN_PERMISSIONS,
+    DEFAULT_USER_PERMISSIONS, ADMIN_PERMISSIONS, STAFF_DEFAULT_PERMISSIONS,
 )
 
 router = APIRouter(tags=["users"])
@@ -41,6 +41,7 @@ class UserUpdate(BaseModel):
     permissions: Optional[dict] = None
     is_active: Optional[bool] = None
     force_pw_change: Optional[bool] = None
+    member_id: Optional[str] = None
 
 
 def _out(u: User) -> dict:
@@ -55,6 +56,7 @@ def _out(u: User) -> dict:
         "force_pw_change":u.force_pw_change,
         "last_login":     u.last_login.isoformat() if u.last_login else None,
         "created_at":     u.created_at.isoformat() if u.created_at else None,
+        "member_id":      u.member_id,
     }
 
 
@@ -81,6 +83,14 @@ def create_user(body: UserCreate, _: User = Depends(require_admin), db: Session 
         force_pw_change=True,
     )
     db.add(user); db.commit(); db.refresh(user)
+    # Auto-assign a member_id if none
+    if not user.member_id:
+        for _ in range(100):
+            mid = str(random.randint(100000, 999999))
+            if not db.query(User).filter(User.member_id == mid).first():
+                user.member_id = mid
+                break
+        db.commit(); db.refresh(user)
     return _out(user)
 
 
@@ -103,6 +113,7 @@ def update_user(uid: int, body: UserUpdate, admin: User = Depends(require_admin)
     if body.is_active is not None: u.is_active = body.is_active
     if body.force_pw_change is not None: u.force_pw_change = body.force_pw_change
     if body.permissions is not None: u.permissions = json.dumps(body.permissions)
+    if body.member_id is not None: u.member_id = body.member_id or None
     if body.password:
         if len(body.password) < 8:
             raise HTTPException(400, "Password must be at least 8 characters")
