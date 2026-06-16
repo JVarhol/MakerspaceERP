@@ -982,4 +982,3 @@ If you cannot book a machine, check:
 
 ---
 
-*Guide generated for Makerspace ERP ALPHA v1.6.4. Remove this file before public release.*
