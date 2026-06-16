@@ -1,49 +1,6 @@
 # Makerspace ERP — User Guide
 
 > **Version:** ALPHA v1.6.4  
-> **Status:** Pre-release draft — for internal use only. Remove before public release.
-
----
-
-## ✏️ How to Edit This Guide
-
-This guide is written in **GitHub Flavored Markdown (GFM)**. It renders automatically on GitHub and can be edited in any text editor, VS Code, or directly in GitHub's web editor (click the pencil ✏️ icon on the file page).
-
-### Adding Screenshots
-
-Create an `images/` folder in this repository and drop screenshots there. Replace placeholder comments like this:
-
-```
-<!-- TODO: screenshot -->
-```
-
-…with actual image references like this:
-
-```markdown
-![Dashboard overview](images/dashboard-overview.png)
-```
-
-### Collapsible Sections
-
-GitHub supports `<details>` blocks for collapsible content — useful for step-by-step walkthroughs you don't want cluttering the main flow:
-
-```markdown
-<details>
-<summary>Click to expand</summary>
-
-Content goes here.
-
-</details>
-```
-
-### Tips for Reformatting
-
-- Use `##` for major sections, `###` for subsections, `####` for fine detail
-- Use `> **Note:**` for callout boxes
-- Use ` ```bash ` fenced blocks for commands
-- Tables: use `| Col | Col |` syntax — GitHub renders them automatically
-
----
 
 ## 📋 Table of Contents
 
