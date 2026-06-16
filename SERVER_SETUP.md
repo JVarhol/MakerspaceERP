@@ -156,10 +156,7 @@ usermod -aG sudo jaret
 ### 5a. Copy the app files to the server
 
 From your Windows machine, use SCP (Windows Terminal / WSL / WinSCP):
-```powershell
-# In Windows Terminal (PowerShell):
-scp -r "C:\Users\jaret\AppData\Roaming\Claude\...\outputs\makerspace-erp" root@192.168.1.50:/tmp/
-```
+
 
 Or use **WinSCP** — drag the `makerspace-erp` folder to `/tmp/` on the server.
 
